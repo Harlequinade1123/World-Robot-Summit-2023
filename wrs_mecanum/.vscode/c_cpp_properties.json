@@ -1,0 +1,24 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/opt/ros/noetic/include/**",
+        "/home/ntlab/GitHub/github_ws/devel/include/**",
+        "/home/ntlab/GitHub/github_ws/src/sidewalkerR/motor_controllers/message_converter/include/**",
+        "/home/ntlab/GitHub/github_ws/src/sidewalkerR/motor_controllers/pmsm_controller/include/**",
+        "/home/ntlab/GitHub/github_ws/src/sidewalkerR/motor_controllers/unitree_controller/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}
