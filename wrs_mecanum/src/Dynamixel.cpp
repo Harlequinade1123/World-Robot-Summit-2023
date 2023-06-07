@@ -50,29 +50,28 @@ void Dynamixel::writeVelocity(uint8_t id, int32_t data)
 void Dynamixel::writeBulkVelocity(int32_t val0, int32_t val1, int32_t val2, int32_t val3)
 {
     dynamixel::GroupBulkWrite groupBulkWrite(this->portHandler, this->packetHandler);
-    dynamixel::GroupBulkRead groupBulkRead(this->portHandler, this->packetHandler);
     groupBulkWrite.clearParam();
     uint8_t param_goal_position[4];
     param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(val0));
     param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(val0));
     param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(val0));
     param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(val0));
-    groupBulkWrite.addParam(11, this->ADDRESS_GOAL_VELOCITY, 4, param_goal_position);
+    groupBulkWrite.addParam(14, this->ADDRESS_GOAL_VELOCITY, 4, param_goal_position);
     param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(val1));
     param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(val1));
     param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(val1));
     param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(val1));
-    groupBulkWrite.addParam(12, this->ADDRESS_GOAL_VELOCITY, 4, param_goal_position);
+    groupBulkWrite.addParam(11, this->ADDRESS_GOAL_VELOCITY, 4, param_goal_position);
     param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(val2));
     param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(val2));
     param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(val2));
     param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(val2));
-    groupBulkWrite.addParam(13, this->ADDRESS_GOAL_VELOCITY, 4, param_goal_position);
+    groupBulkWrite.addParam(12, this->ADDRESS_GOAL_VELOCITY, 4, param_goal_position);
     param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(val3));
     param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(val3));
     param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(val3));
     param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(val3));
-    groupBulkWrite.addParam(14, this->ADDRESS_GOAL_VELOCITY, 4, param_goal_position);
+    groupBulkWrite.addParam(13, this->ADDRESS_GOAL_VELOCITY, 4, param_goal_position);
     groupBulkWrite.txPacket();
 }
 
@@ -120,6 +119,30 @@ bool Dynamixel::readVelocity(uint8_t id, int32_t &data)
         printf("%s\n", this->packetHandler->getRxPacketError(this->dxl_error));
         return false;
     }
+    return true;
+}
+
+bool Dynamixel::readBulkVelocity(int32_t &data0, int32_t &data1, int32_t &data2, int32_t &data3)
+{
+    dynamixel::GroupBulkRead groupBulkRead(this->portHandler, this->packetHandler);
+    groupBulkRead.addParam(14, this->ADDRESS_GOAL_VELOCITY, 4);
+    groupBulkRead.addParam(11, this->ADDRESS_GOAL_VELOCITY, 4);
+    groupBulkRead.addParam(12, this->ADDRESS_GOAL_VELOCITY, 4);
+    groupBulkRead.addParam(13, this->ADDRESS_GOAL_VELOCITY, 4);
+    groupBulkRead.txRxPacket();
+    bool check = true;
+    check = check && groupBulkRead.isAvailable(14, this->ADDRESS_GOAL_VELOCITY, 4);
+    check = check && groupBulkRead.isAvailable(11, this->ADDRESS_GOAL_VELOCITY, 4);
+    check = check && groupBulkRead.isAvailable(12, this->ADDRESS_GOAL_VELOCITY, 4);
+    check = check && groupBulkRead.isAvailable(13, this->ADDRESS_GOAL_VELOCITY, 4);
+    if (!check)
+    {
+        return false;
+    }
+    data0 = groupBulkRead.getData(14, this->ADDRESS_GOAL_VELOCITY, 4);
+    data1 = groupBulkRead.getData(11, this->ADDRESS_GOAL_VELOCITY, 4);
+    data2 = groupBulkRead.getData(12, this->ADDRESS_GOAL_VELOCITY, 4);
+    data3 = groupBulkRead.getData(13, this->ADDRESS_GOAL_VELOCITY, 4);
     return true;
 }
 

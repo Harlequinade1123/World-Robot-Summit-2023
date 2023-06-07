@@ -37,6 +37,7 @@ class Dynamixel
     
     bool readCurrent(uint8_t id, int16_t &data);
     bool readVelocity(uint8_t id, int32_t &data);
+    bool readBulkVelocity(int32_t &data0, int32_t &data1, int32_t &data2, int32_t &data3);
     bool readRPM(uint8_t id, float &data);
     bool readPosition(uint8_t id, int32_t &data);
 };

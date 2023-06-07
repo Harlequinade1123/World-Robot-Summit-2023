@@ -158,9 +158,13 @@ int main(int argc, char **argv)
         //    
         //}
         dxl.writeBulkVelocity(vals[0] / 0.229, vals[1] / 0.229, vals[2] / 0.229, vals[3] / 0.229);
+        if (dxl.readBulkVelocity(get_vals[0], get_vals[1], get_vals[2], get_vals[3]))
+        {
+            printf("%d, %d, %d, %d : ", get_vals[0], get_vals[1], get_vals[2], get_vals[3]);
+        }
         ros_now = ros::Time::now();
         ros::Duration ros_duration = ros_now - ros_old;
-        ROS_INFO("%u", ros_duration.nsec / 1000000);
+        printf("%u\n", ros_duration.nsec / 1000000);
         ros_old = ros_now;
 
         rate.sleep();
