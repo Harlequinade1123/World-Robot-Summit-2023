@@ -125,24 +125,24 @@ bool Dynamixel::readVelocity(uint8_t id, int32_t &data)
 bool Dynamixel::readBulkVelocity(int32_t &data0, int32_t &data1, int32_t &data2, int32_t &data3)
 {
     dynamixel::GroupBulkRead groupBulkRead(this->portHandler, this->packetHandler);
-    groupBulkRead.addParam(14, this->ADDRESS_GOAL_VELOCITY, 4);
-    groupBulkRead.addParam(11, this->ADDRESS_GOAL_VELOCITY, 4);
-    groupBulkRead.addParam(12, this->ADDRESS_GOAL_VELOCITY, 4);
-    groupBulkRead.addParam(13, this->ADDRESS_GOAL_VELOCITY, 4);
+    groupBulkRead.addParam(14, this->ADDRESS_PRESENT_VELOCITY, 4);
+    groupBulkRead.addParam(11, this->ADDRESS_PRESENT_VELOCITY, 4);
+    groupBulkRead.addParam(12, this->ADDRESS_PRESENT_VELOCITY, 4);
+    groupBulkRead.addParam(13, this->ADDRESS_PRESENT_VELOCITY, 4);
     groupBulkRead.txRxPacket();
     bool check = true;
-    check = check && groupBulkRead.isAvailable(14, this->ADDRESS_GOAL_VELOCITY, 4);
-    check = check && groupBulkRead.isAvailable(11, this->ADDRESS_GOAL_VELOCITY, 4);
-    check = check && groupBulkRead.isAvailable(12, this->ADDRESS_GOAL_VELOCITY, 4);
-    check = check && groupBulkRead.isAvailable(13, this->ADDRESS_GOAL_VELOCITY, 4);
+    check = check && groupBulkRead.isAvailable(14, this->ADDRESS_PRESENT_VELOCITY, 4);
+    check = check && groupBulkRead.isAvailable(11, this->ADDRESS_PRESENT_VELOCITY, 4);
+    check = check && groupBulkRead.isAvailable(12, this->ADDRESS_PRESENT_VELOCITY, 4);
+    check = check && groupBulkRead.isAvailable(13, this->ADDRESS_PRESENT_VELOCITY, 4);
     if (!check)
     {
         return false;
     }
-    data0 = groupBulkRead.getData(14, this->ADDRESS_GOAL_VELOCITY, 4);
-    data1 = groupBulkRead.getData(11, this->ADDRESS_GOAL_VELOCITY, 4);
-    data2 = groupBulkRead.getData(12, this->ADDRESS_GOAL_VELOCITY, 4);
-    data3 = groupBulkRead.getData(13, this->ADDRESS_GOAL_VELOCITY, 4);
+    data0 = groupBulkRead.getData(14, this->ADDRESS_PRESENT_VELOCITY, 4);
+    data1 = groupBulkRead.getData(11, this->ADDRESS_PRESENT_VELOCITY, 4);
+    data2 = groupBulkRead.getData(12, this->ADDRESS_PRESENT_VELOCITY, 4);
+    data3 = groupBulkRead.getData(13, this->ADDRESS_PRESENT_VELOCITY, 4);
     return true;
 }
 

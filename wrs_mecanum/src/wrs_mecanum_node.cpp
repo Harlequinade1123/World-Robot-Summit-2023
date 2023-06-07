@@ -86,7 +86,7 @@ int main(int argc, char **argv)
         dxl.torqueOn(ids[i]);
     }
 
-    ros::Rate rate(200);
+    ros::Rate rate(50);
     float robot_vx = 0, robot_vy = 0, robot_w = 0;
     ros::Time ros_now = ros::Time::now();
     ros::Time ros_old = ros::Time::now();
