@@ -9,6 +9,7 @@
 class Sketch : public PSketch
 {
     private:
+    ros::NodeHandle nh_;
     ros::Publisher  odom_pub_;
     ros::Subscriber joint_sub_;
     std::mutex mtx_;
@@ -16,6 +17,9 @@ class Sketch : public PSketch
     nav_msgs::Odometry odom_msg_;
     ros::Time callback_time_;
 
+    ros::Time ros_now = ros::Time::now();
+    ros::Time ros_old = ros::Time::now();
+    
     Mecanum mecanum;
     bool dxl_is_connected = true;
     uint8_t ids[4]  = { 14, 11, 12, 13 };
@@ -51,7 +55,7 @@ class Sketch : public PSketch
     void mouseButtonEvent(int button, int action);
     void cursorPosEvent(double xpos, double ypos);
     void scrollEvent(double xoffset, double yoffset);
-    void jointCallback(sensor_msgs::JointStateConstPtr &msg);
+    void jointCallback(const sensor_msgs::JointStateConstPtr &msg);
     void parallelTask1();
     void parallelTask2();
     void parallelTask3();

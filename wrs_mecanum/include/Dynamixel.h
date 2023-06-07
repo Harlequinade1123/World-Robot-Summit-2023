@@ -31,6 +31,7 @@ class Dynamixel
     void torqueOff(uint8_t id);
     void writeCurrent(uint8_t id, int16_t data);
     void writeVelocity(uint8_t id, int32_t data);
+    void writeBulkVelocity(int32_t val0, int32_t val1, int32_t val2, int32_t val3);
     void writeRPM(uint8_t id, float data);
     void writePosition(uint8_t id, int32_t data);
     

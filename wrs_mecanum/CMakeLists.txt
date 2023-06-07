@@ -9,14 +9,6 @@ find_package(catkin REQUIRED COMPONENTS
   dynamixel_sdk
 )
 
-find_package(OpenGL REQUIRED)
-include_directories(${OPENGL_INCLUDE_DIR})
-link_libraries(${OPENGL_LIBRARIES})
-
-find_package(GLEW REQUIRED)
-include_directories(${GLEW_INCLUDE_DIRS})
-link_libraries(${GLEW_LIBRARIES})
-
 find_package(Threads REQUIRED)
 
 catkin_package(
@@ -33,8 +25,6 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(${PROJECT_NAME}_node src/wrs_mecanum_node.cpp src/psketch.cpp src/sketch.cpp src/kinematics.cpp src/Dynamixel.cpp)
+add_executable(${PROJECT_NAME}_node src/wrs_mecanum_node.cpp src/kinematics.cpp src/Dynamixel.cpp)
 add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES} )
-target_link_libraries(${PROJECT_NAME}_node glfw OpenGL::GL)
-target_link_libraries(${PROJECT_NAME}_node Threads::Threads)

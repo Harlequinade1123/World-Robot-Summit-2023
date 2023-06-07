@@ -8,8 +8,8 @@ Dynamixel::~Dynamixel()
 
 void Dynamixel::begin(const char* port_name, const int baudrate)
 {
-    this->portHandler = dynamixel::PortHandler::getPortHandler(port_name);
-    this->packetHandler = dynamixel::PacketHandler::getPacketHandler(this->PROTOCOL_VERSION);
+    this->portHandler    = dynamixel::PortHandler::getPortHandler(port_name);
+    this->packetHandler  = dynamixel::PacketHandler::getPacketHandler(this->PROTOCOL_VERSION);
 
     if (!this->portHandler->openPort())
     {
@@ -46,6 +46,36 @@ void Dynamixel::writeVelocity(uint8_t id, int32_t data)
 {
     this->packetHandler->write4ByteTxRx(this->portHandler, id, this->ADDRESS_GOAL_VELOCITY, data, &this->dxl_error);
 }
+
+void Dynamixel::writeBulkVelocity(int32_t val0, int32_t val1, int32_t val2, int32_t val3)
+{
+    dynamixel::GroupBulkWrite groupBulkWrite(this->portHandler, this->packetHandler);
+    dynamixel::GroupBulkRead groupBulkRead(this->portHandler, this->packetHandler);
+    groupBulkWrite.clearParam();
+    uint8_t param_goal_position[4];
+    param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(val0));
+    param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(val0));
+    param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(val0));
+    param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(val0));
+    groupBulkWrite.addParam(11, this->ADDRESS_GOAL_VELOCITY, 4, param_goal_position);
+    param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(val1));
+    param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(val1));
+    param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(val1));
+    param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(val1));
+    groupBulkWrite.addParam(12, this->ADDRESS_GOAL_VELOCITY, 4, param_goal_position);
+    param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(val2));
+    param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(val2));
+    param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(val2));
+    param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(val2));
+    groupBulkWrite.addParam(13, this->ADDRESS_GOAL_VELOCITY, 4, param_goal_position);
+    param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(val3));
+    param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(val3));
+    param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(val3));
+    param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(val3));
+    groupBulkWrite.addParam(14, this->ADDRESS_GOAL_VELOCITY, 4, param_goal_position);
+    groupBulkWrite.txPacket();
+}
+
 
 void Dynamixel::writeRPM(uint8_t id, float data)
 {

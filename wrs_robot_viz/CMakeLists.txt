@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(robot_viz)
+project(wrs_robot_viz)
 
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
@@ -31,7 +31,7 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(${PROJECT_NAME}_node src/robot_viz_node.cpp src/psketch.cpp src/sketch.cpp src/kinematics.cpp)
+add_executable(${PROJECT_NAME}_node src/wrs_robot_viz_node.cpp src/psketch.cpp src/sketch.cpp src/kinematics.cpp)
 add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_node glfw OpenGL::GL)

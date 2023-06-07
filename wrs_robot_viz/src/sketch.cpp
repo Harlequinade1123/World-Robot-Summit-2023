@@ -17,10 +17,17 @@ Sketch::Sketch() : PSketch()
     this->odom_msg_.twist.twist.angular.x   = 0.0;
     this->odom_msg_.twist.twist.angular.y   = 0.0;
     this->odom_msg_.twist.twist.angular.z   = 0.0;
+
+    this->ros_now = ros::Time::now();
+    this->ros_old = ros::Time::now();
+
+    this->odom_pub_  = this->nh_.advertise<nav_msgs::Odometry>("/wrs/odom", 10);
+    this->joint_sub_ = this->nh_.subscribe("/wrs/joint", 10, &Sketch::jointCallback, this);
+
     size(800, 800, P3D);
 }
 
-void Sketch::jointCallback(sensor_msgs::JointStateConstPtr &msg)
+void Sketch::jointCallback(const sensor_msgs::JointStateConstPtr &msg)
 {
     this->mtx_.lock();
     if (callback_time_ < msg->header.stamp && 4 <= msg->velocity.size())
@@ -30,9 +37,11 @@ void Sketch::jointCallback(sensor_msgs::JointStateConstPtr &msg)
                                     msg->velocity[1],
                                     msg->velocity[2],
                                     msg->velocity[3] );
-        this->mecanum.getVelocity ( this->odom_msg_.twist.twist.linear.x,
-                                    this->odom_msg_.twist.twist.linear.y,
-                                    this->odom_msg_.twist.twist.angular.z );
+        float vx, vy, omega;
+        this->mecanum.getVelocity (vx, vy, omega);
+        this->odom_msg_.twist.twist.linear.x  = vx;
+        this->odom_msg_.twist.twist.linear.y  = vy;
+        this->odom_msg_.twist.twist.angular.z = omega;
     }
     this->mtx_.unlock();
 }
@@ -43,7 +52,7 @@ void Sketch::parallelTask1()
     while (ros::ok())
     {
         this->mtx_.lock();
-        //double delta_time = 0;
+        double delta_time = 0;
         double qz_tmp = this->odom_msg_.pose.pose.orientation.z;
         double qw_tmp = this->odom_msg_.pose.pose.orientation.w;
         this->odom_msg_.pose.pose.orientation.z += qw_tmp * delta_time * 0.5 * odom_msg_.twist.twist.angular.z;
@@ -70,8 +79,10 @@ void Sketch::setup()
 
 void Sketch::draw()
 {
-    mecanum.calcInvese(robot_vx, robot_vy, robot_w);
-    mecanum.getRPM(this->vals[0], this->vals[1], this->vals[2], this->vals[3]);
+    if (!ros::ok())
+    {
+        exit(1);
+    }
     background(200);
     scale(0.5,0.5,0.5);
     strokeWeight(1.5);
@@ -86,8 +97,8 @@ void Sketch::draw()
     double dt = 1.0 / 500.0;
     if (this->mtx_.try_lock())
     {
-        this->robot_x   = pose.pose.position.x/*[m]*/ * 1000;/*[mm]*/
-        this->robot_y   = pose.pose.position.y/*[m]*/ * 1000;/*[mm]*/
+        this->robot_x   = odom_msg_.pose.pose.position.x/*[m]*/ * 1000;/*[mm]*/
+        this->robot_y   = odom_msg_.pose.pose.position.y/*[m]*/ * 1000;/*[mm]*/
         this->robot_yaw = 2.0*atan2(this->odom_msg_.pose.pose.orientation.z,
                                     this->odom_msg_.pose.pose.orientation.w);
         this->mtx_.unlock();
