@@ -25,6 +25,6 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(${PROJECT_NAME}_node src/wrs_mecanum_node.cpp src/kinematics.cpp src/Dynamixel.cpp)
+add_executable(${PROJECT_NAME}_node src/wrs_mecanum_node.cpp src/Dynamixel.cpp)
 add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES} )

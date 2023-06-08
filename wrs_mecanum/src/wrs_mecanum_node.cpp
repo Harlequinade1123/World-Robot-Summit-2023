@@ -1,172 +1,102 @@
 #include <ros/ros.h>
-#include "kinematics.h"
+#include <sensor_msgs/JointState.h>
+#include <mutex>
 #include "Dynamixel.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <net/if.h>
-#include <sys/ioctl.h>
-
-#include <iostream>
-#include <chrono>
-
-#include <termios.h>
-#include <fcntl.h>
-
-int kbhit(void)
-{
-    struct termios oldt, newt;
-    int ch;
-    int oldf;
-
-    tcgetattr(STDIN_FILENO, &oldt);
-    newt = oldt;
-    newt.c_lflag &= ~(ICANON | ECHO);
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
-    oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
-    fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
-
-    ch = getchar();
-
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
-    fcntl(STDIN_FILENO, F_SETFL, oldf);
-
-    if (ch != EOF)
-    {
-        ungetc(ch, stdin);
-        return 1;
-    }
-
-    return 0;
-}
-
-
-uint8_t ids[4]  = { 14, 11, 12, 13 };
-float   vals[4] = { 0.0, 0.0, 0.0, 0.0 };
-int32_t get_vals[4] = { 0, 0, 0, 0 };
 
 class MecanumNode
 {
     private:
     ros::NodeHandle nh_;
+    ros::Publisher  joint_pub_;
+    ros::Subscriber joint_sub_;
     Dynamixel dxl_;
-    uint8_t ids[4]  = { 14, 11, 12, 13 };
-    float   vals[4] = { 0.0, 0.0, 0.0, 0.0 };
-    int32_t get_vals[4] = { 0, 0, 0, 0 };
+    float   vals_[4] = { 0.0, 0.0, 0.0, 0.0 };
+    int32_t get_vals_[4] = { 0, 0, 0, 0 };
+    sensor_msgs::JointState joint_msg_;
+    std::mutex mtx_;
+    ros::Time callback_time_;
 
     public:
     void init();
     void write();
     void read();
+    void final();
+    void jointCallback(const sensor_msgs::JointStateConstPtr &msg);
 };
 
 void MecanumNode::init()
 {
+    this->callback_time_ = ros::Time::now();
+    this->joint_msg_.velocity.resize(4);
+    this->joint_pub_ = this->nh_.advertise<sensor_msgs::JointState>("/wrs/write", 10);
+    this->joint_sub_ = this->nh_.subscribe("/wrs/read", 10, &MecanumNode::jointCallback, this);
+    this->dxl_.begin("/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT2N05OG-if00-port0", 1000000);
+    this->dxl_.torqueOn(11);
+    this->dxl_.torqueOn(12);
+    this->dxl_.torqueOn(13);
+    this->dxl_.torqueOn(14);
 }
 
 void MecanumNode::write()
 {
+    this->dxl_.writeBulkVelocity(static_cast<int32_t>(vals_[0]),
+                                static_cast<int32_t> (vals_[1]),
+                                static_cast<int32_t> (vals_[2]),
+                                static_cast<int32_t> (vals_[3]));
 }
 
 void MecanumNode::read()
 {
+    if (this->dxl_.readBulkVelocity(get_vals_[0], get_vals_[1], get_vals_[2], get_vals_[3]))
+    {
+        this->joint_msg_.header.stamp = ros::Time::now();
+        this->joint_msg_.velocity[0] = static_cast<double>(get_vals_[0]) * 0.229 * M_PI / 30.0;
+        this->joint_msg_.velocity[1] = static_cast<double>(get_vals_[1]) * 0.229 * M_PI / 30.0;
+        this->joint_msg_.velocity[2] = static_cast<double>(get_vals_[2]) * 0.229 * M_PI / 30.0;
+        this->joint_msg_.velocity[3] = static_cast<double>(get_vals_[3]) * 0.229 * M_PI / 30.0;
+        this->joint_pub_.publish(this->joint_msg_);
+        printf("%d, %d, %d, %d : ", get_vals_[0], get_vals_[1], get_vals_[2], get_vals_[3]);
+    }
+}
+
+void MecanumNode::final()
+{
+    this->dxl_.writeBulkVelocity(0, 0, 0, 0);
+}
+
+void MecanumNode::jointCallback(const sensor_msgs::JointStateConstPtr &msg)
+{
+    if (callback_time_ < msg->header.stamp && 4 <= msg->velocity.size())
+    {
+        mtx_.lock();
+        callback_time_ = msg->header.stamp;
+        this->vals_[0] = msg->velocity[0] * 30.0 / M_PI / 0.229;
+        this->vals_[1] = msg->velocity[1] * 30.0 / M_PI / 0.229;
+        this->vals_[2] = msg->velocity[2] * 30.0 / M_PI / 0.229;
+        this->vals_[3] = msg->velocity[3] * 30.0 / M_PI / 0.229;
+        mtx_.unlock();
+    }
 }
 
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "wrs_mecanum_node");
-    ros::NodeHandle nh;
-    Mecanum mecanum(50, 250, 270);
-    Dynamixel dxl;
-    dxl.begin("/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT2N05OG-if00-port0", 1000000);
-    for (int i = 0; i < 4; i++)
-    {
-        dxl.torqueOn(ids[i]);
-    }
-
+    MecanumNode node;
+    ros::AsyncSpinner spinner(1);
+    spinner.start();
+    node.init();
     ros::Rate rate(50);
-    float robot_vx = 0, robot_vy = 0, robot_w = 0;
     ros::Time ros_now = ros::Time::now();
     ros::Time ros_old = ros::Time::now();
     while (ros::ok())
     {
-        if (kbhit())
-        {
-            char key = getchar();
-            if (key == 'q')
-            {
-                robot_vx = 100;
-                robot_vy = 100;
-            }
-            else if (key == 'w')
-            {
-                robot_vx = 100;
-                robot_vy = 0;
-            }
-            else if (key == 'e')
-            {
-                robot_vx = 100;
-                robot_vy = -100;
-            }
-            else if (key == 'a')
-            {
-                robot_vx = 0;
-                robot_vy = 100;
-            }
-            else if (key == 's')
-            {
-                robot_vx = 0;
-                robot_vy = 0;
-            }
-            else if (key == 'd')
-            {
-                robot_vx = 0;
-                robot_vy = -100;
-            }
-            else if (key == 'z')
-            {
-                robot_vx = -100;
-                robot_vy = 100;
-            }
-            else if (key == 'x')
-            {
-                robot_vx = -100;
-                robot_vy = 0;
-            }
-            else if (key == 'c')
-            {
-                robot_vx = -100;
-                robot_vy = -100;
-            }
-        }
-        mecanum.calcInvese(robot_vx, robot_vy, robot_w);
-        mecanum.getRPM(vals[0], vals[1], vals[2], vals[3]);
-
-        //for (int i = 0; i < 4; i++)
-        //{
-        //    dxl.writeVelocity(ids[i], vals[i] / 0.229);
-        //}
-        bool get_data = true;
-        //for (int i = 0; i < 4; i++)
-        //{
-        //    get_data = get_data && dxl.readVelocity(ids[i], get_vals[i]);
-        //}
-        //if (get_data)
-        //{
-        //    
-        //}
-        dxl.writeBulkVelocity(vals[0] / 0.229, vals[1] / 0.229, vals[2] / 0.229, vals[3] / 0.229);
-        if (dxl.readBulkVelocity(get_vals[0], get_vals[1], get_vals[2], get_vals[3]))
-        {
-            printf("%d, %d, %d, %d : ", get_vals[0], get_vals[1], get_vals[2], get_vals[3]);
-        }
         ros_now = ros::Time::now();
         ros::Duration ros_duration = ros_now - ros_old;
+        node.write();
+        node.read();
         printf("%u\n", ros_duration.nsec / 1000000);
         ros_old = ros_now;
-
         rate.sleep();
     }
+    node.final();
 }

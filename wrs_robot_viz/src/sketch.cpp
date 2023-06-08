@@ -22,7 +22,7 @@ Sketch::Sketch() : PSketch()
     this->ros_old = ros::Time::now();
 
     this->odom_pub_  = this->nh_.advertise<nav_msgs::Odometry>("/wrs/odom", 10);
-    this->joint_sub_ = this->nh_.subscribe("/wrs/joint", 10, &Sketch::jointCallback, this);
+    this->joint_sub_ = this->nh_.subscribe("/wrs/read", 10, &Sketch::jointCallback, this);
 
     size(800, 800, P3D);
 }
@@ -49,10 +49,15 @@ void Sketch::jointCallback(const sensor_msgs::JointStateConstPtr &msg)
 void Sketch::parallelTask1()
 {
     ros::Rate rate(200);
+    ros::Time ros_now = ros::Time::now();
+    ros::Time ros_old = ros::Time::now();
+    ros::Duration ros_duration
     while (ros::ok())
     {
+        ros_now = ros::Time::now();
         this->mtx_.lock();
-        double delta_time = 0;
+        ros_duration = ros_now - ros_old;
+        double delta_time = ros_duration.nsec / 1000000;
         double qz_tmp = this->odom_msg_.pose.pose.orientation.z;
         double qw_tmp = this->odom_msg_.pose.pose.orientation.w;
         this->odom_msg_.pose.pose.orientation.z += qw_tmp * delta_time * 0.5 * odom_msg_.twist.twist.angular.z;
@@ -61,6 +66,7 @@ void Sketch::parallelTask1()
         this->odom_msg_.pose.pose.position.y += this->odom_msg_.twist.twist.linear.y * delta_time;
         this->odom_pub_.publish(this->odom_msg_);
         this->mtx_.unlock();
+        ros_old = ros_now;
         rate.sleep();
     }
 }
