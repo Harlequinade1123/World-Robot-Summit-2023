@@ -39,8 +39,8 @@ void Sketch::jointCallback(const sensor_msgs::JointStateConstPtr &msg)
                                     msg->velocity[3] );
         float vx, vy, omega;
         this->mecanum.getVelocity (vx, vy, omega);
-        this->odom_msg_.twist.twist.linear.x  = vx;
-        this->odom_msg_.twist.twist.linear.y  = vy;
+        this->odom_msg_.twist.twist.linear.x  = vx * 0.000001;
+        this->odom_msg_.twist.twist.linear.y  = vy * 0.000001;
         this->odom_msg_.twist.twist.angular.z = omega;
     }
     this->mtx_.unlock();
@@ -51,17 +51,17 @@ void Sketch::parallelTask1()
     ros::Rate rate(200);
     ros::Time ros_now = ros::Time::now();
     ros::Time ros_old = ros::Time::now();
-    ros::Duration ros_duration
+    ros::Duration ros_duration;
     while (ros::ok())
     {
         ros_now = ros::Time::now();
         this->mtx_.lock();
         ros_duration = ros_now - ros_old;
         double delta_time = ros_duration.nsec / 1000000;
-        double qz_tmp = this->odom_msg_.pose.pose.orientation.z;
-        double qw_tmp = this->odom_msg_.pose.pose.orientation.w;
-        this->odom_msg_.pose.pose.orientation.z += qw_tmp * delta_time * 0.5 * odom_msg_.twist.twist.angular.z;
-        this->odom_msg_.pose.pose.orientation.w += qz_tmp * delta_time * 0.5 * odom_msg_.twist.twist.angular.z;
+        double qz_tmp = 0;//this->odom_msg_.pose.pose.orientation.z;
+        double qw_tmp = 1;//this->odom_msg_.pose.pose.orientation.w;
+        this->odom_msg_.pose.pose.orientation.z += 0;//qw_tmp * delta_time * 0.5 * odom_msg_.twist.twist.angular.z;
+        this->odom_msg_.pose.pose.orientation.w += 0;//qz_tmp * delta_time * 0.5 * odom_msg_.twist.twist.angular.z;
         this->odom_msg_.pose.pose.position.x += this->odom_msg_.twist.twist.linear.x * delta_time;
         this->odom_msg_.pose.pose.position.y += this->odom_msg_.twist.twist.linear.y * delta_time;
         this->odom_pub_.publish(this->odom_msg_);
@@ -103,10 +103,9 @@ void Sketch::draw()
     double dt = 1.0 / 500.0;
     if (this->mtx_.try_lock())
     {
-        this->robot_x   = odom_msg_.pose.pose.position.x/*[m]*/ * 1000;/*[mm]*/
-        this->robot_y   = odom_msg_.pose.pose.position.y/*[m]*/ * 1000;/*[mm]*/
-        this->robot_yaw = 2.0*atan2(this->odom_msg_.pose.pose.orientation.z,
-                                    this->odom_msg_.pose.pose.orientation.w);
+        this->robot_x   = odom_msg_.pose.pose.position.x * 1000;//[m] -> [mm]
+        this->robot_y   = odom_msg_.pose.pose.position.y * 1000;//[m] -> [mm]
+        this->robot_yaw = 0.0;
         this->mtx_.unlock();
     }
     

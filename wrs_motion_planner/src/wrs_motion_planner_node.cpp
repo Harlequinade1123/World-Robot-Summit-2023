@@ -4,7 +4,7 @@
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "wrs_mecanum_node");
+    ros::init(argc, argv, "wrs_motion_planner_node");
     ros::NodeHandle nh;
     ros::Publisher joint_pub = nh.advertise<sensor_msgs::JointState>("/wrs/write", 10);
 
@@ -25,7 +25,16 @@ int main(int argc, char **argv)
         joint_msg.velocity[2] = omega2;
         joint_msg.velocity[3] = omega3;
         joint_pub.publish(joint_msg);
-        usleep(1000000);
+        usleep(3000000);
+        mecanum.calcInvese(0, 100, 0);
+        mecanum.getRAD(omega0, omega1, omega2, omega3);
+        joint_msg.header.stamp = ros::Time::now();
+        joint_msg.velocity[0] = omega0;
+        joint_msg.velocity[1] = omega1;
+        joint_msg.velocity[2] = omega2;
+        joint_msg.velocity[3] = omega3;
+        joint_pub.publish(joint_msg);
+        usleep(3000000);
         mecanum.calcInvese(-100, 0, 0);
         mecanum.getRAD(omega0, omega1, omega2, omega3);
         joint_msg.header.stamp = ros::Time::now();
@@ -34,6 +43,15 @@ int main(int argc, char **argv)
         joint_msg.velocity[2] = omega2;
         joint_msg.velocity[3] = omega3;
         joint_pub.publish(joint_msg);
-        usleep(1000000);
+        usleep(3000000);
+        mecanum.calcInvese(0, -100, 0);
+        mecanum.getRAD(omega0, omega1, omega2, omega3);
+        joint_msg.header.stamp = ros::Time::now();
+        joint_msg.velocity[0] = omega0;
+        joint_msg.velocity[1] = omega1;
+        joint_msg.velocity[2] = omega2;
+        joint_msg.velocity[3] = omega3;
+        joint_pub.publish(joint_msg);
+        usleep(3000000);
     }
 }
