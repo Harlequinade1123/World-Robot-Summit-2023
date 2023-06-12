@@ -19,6 +19,8 @@ link_libraries(${GLEW_LIBRARIES})
 
 find_package(Threads REQUIRED)
 
+find_package (Eigen3 REQUIRED)
+
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES robot_viz
@@ -36,3 +38,4 @@ add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catk
 target_link_libraries(${PROJECT_NAME}_node ${catkin_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_node glfw OpenGL::GL)
 target_link_libraries(${PROJECT_NAME}_node Threads::Threads)
+target_link_libraries(${PROJECT_NAME}_node Eigen3::Eigen)

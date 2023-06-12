@@ -6,7 +6,7 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "wrs_motion_planner_node");
     ros::NodeHandle nh;
-    ros::Publisher joint_pub = nh.advertise<sensor_msgs::JointState>("/wrs/write", 10);
+    ros::Publisher joint_pub = nh.advertise<sensor_msgs::JointState>("/wrs/wheel/write", 10);
 
     sensor_msgs::JointState joint_msg;
     joint_msg.velocity.resize(4);

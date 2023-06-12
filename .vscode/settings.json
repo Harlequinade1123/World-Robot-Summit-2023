@@ -12,6 +12,15 @@
         "shared_mutex": "cpp",
         "condition_variable": "cpp",
         "unordered_map": "cpp",
-        "unordered_set": "cpp"
+        "unordered_set": "cpp",
+        "array": "cpp",
+        "*.tcc": "cpp",
+        "deque": "cpp",
+        "list": "cpp",
+        "string": "cpp",
+        "vector": "cpp",
+        "hash_map": "cpp",
+        "hash_set": "cpp",
+        "valarray": "cpp"
     }
 }

@@ -28,8 +28,8 @@ void MecanumNode::init()
 {
     this->callback_time_ = ros::Time::now();
     this->joint_msg_.velocity.resize(4);
-    this->joint_pub_ = this->nh_.advertise<sensor_msgs::JointState>("/wrs/read", 10);
-    this->joint_sub_ = this->nh_.subscribe("/wrs/write", 10, &MecanumNode::jointCallback, this);
+    this->joint_pub_ = this->nh_.advertise<sensor_msgs::JointState>("/wrs/wheel/read", 10);
+    this->joint_sub_ = this->nh_.subscribe("/wrs/wheel/write", 10, &MecanumNode::jointCallback, this);
     this->dxl_.begin("/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT2N05OG-if00-port0", 1000000);
     this->dxl_.torqueOn(11);
     this->dxl_.torqueOn(12);

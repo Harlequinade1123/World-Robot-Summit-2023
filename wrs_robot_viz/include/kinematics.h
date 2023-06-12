@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Eigen/Core>
 #include <math.h>
 
 class Mecanum
@@ -45,4 +46,10 @@ class Mecanum
     float saved_omega1_rpm_;
     float saved_omega2_rpm_;
     float saved_omega3_rpm_;
+};
+
+class CraneX7
+{
+    private:
+    public:
 };
