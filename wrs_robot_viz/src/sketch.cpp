@@ -258,7 +258,7 @@ void Sketch::drawArm()
     rotateX(-M_PI_2);
     fill(110);
 
-    rotateY(-this->arm_angles[1]);
+    rotateY(this->arm_angles[1]);
 
     translate(0.0, 0.0, this->arm_lengths[2] / 2.0);
     box(this->arm_size, this->arm_size, this->arm_lengths[2]);
@@ -276,7 +276,7 @@ void Sketch::drawArm()
     rotateX(-M_PI_2);
     fill(110);
 
-    rotateY(-this->arm_angles[3]);
+    rotateY(this->arm_angles[3]);
 
     translate(0.0, 0.0, this->arm_lengths[4] / 2.0);
     box(this->arm_size, this->arm_size, this->arm_lengths[4]);
@@ -294,7 +294,7 @@ void Sketch::drawArm()
     rotateX(-M_PI_2);
     fill(110);
 
-    rotateY(-this->arm_angles[5]);
+    rotateY(this->arm_angles[5]);
 
     translate(0.0, 0.0, this->arm_lengths[6] / 2.0);
     box(this->arm_size, this->arm_size, this->arm_lengths[6]);

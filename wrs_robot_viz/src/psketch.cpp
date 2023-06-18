@@ -46,7 +46,7 @@ void PSketch::run()
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
     glfwWindowHint(GLFW_SAMPLES, 4);
 
-    this->window = glfwCreateWindow(this->WIDTH, this->HEIGHT, "processing", nullptr, nullptr);
+    this->window = glfwCreateWindow(this->WIDTH, this->HEIGHT, "Robot", nullptr, nullptr);
     if (window == NULL)
     {
         std::cerr << "Can't create GLFW window." << std::endl;

@@ -21,6 +21,8 @@
         "vector": "cpp",
         "hash_map": "cpp",
         "hash_set": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "core": "cpp",
+        "random": "cpp"
     }
 }

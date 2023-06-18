@@ -33,14 +33,14 @@ void CrainX7Node::init()
     this->joint_pub_ = this->nh_.advertise<sensor_msgs::JointState>("/wrs/arm/read", 10);
     this->joint_sub_ = this->nh_.subscribe("/wrs/arm/write", 10, &CrainX7Node::jointCallback, this);
     this->dxl_.begin("/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT5UJQQO-if00-port0", 1000000);
-    this->dxl_.torqueOn(22);
-    this->dxl_.torqueOn(23);
-    this->dxl_.torqueOn(24);
-    this->dxl_.torqueOn(25);
-    this->dxl_.torqueOn(26);
-    this->dxl_.torqueOn(27);
-    this->dxl_.torqueOn(28);
-    this->dxl_.torqueOn(29);
+    //this->dxl_.torqueOn(22);
+    //this->dxl_.torqueOn(23);
+    //this->dxl_.torqueOn(24);
+    //this->dxl_.torqueOn(25);
+    //this->dxl_.torqueOn(26);
+    //this->dxl_.torqueOn(27);
+    //this->dxl_.torqueOn(28);
+    //this->dxl_.torqueOn(29);
     this->dxl_.readBulkPosition(this->ids_, this->vals_, 8);
 }
 
@@ -77,13 +77,13 @@ void CrainX7Node::final()
 
 void CrainX7Node::jointCallback(const sensor_msgs::JointStateConstPtr &msg)
 {
-    if (callback_time_ < msg->header.stamp && 7 <= msg->velocity.size())
+    if (callback_time_ < msg->header.stamp && 7 <= msg->position.size())
     {
         mtx_.lock();
         callback_time_ = msg->header.stamp;
         for (int i = 0; i < 8; i++)
         {
-            this->vals_[i] = map(msg->velocity[i], -M_PI, M_PI, 0, 4096);
+            this->vals_[i] = map(msg->position[i], -M_PI, M_PI, 0, 4096);
         }
         mtx_.unlock();
     }
@@ -93,7 +93,8 @@ double CrainX7Node::map(double value, double start1, double stop1, double start2
 {
     if(start1 <= value && value <= stop1)
     {
-        return (stop2 - start2) / (stop1 - start1) * value;
+        //return (stop2 - start2) / (stop1 - start1) * value;
+        return (value - start1) * (stop2 - start2) / (stop1 - start1) + start2;
     }
     else
     {
