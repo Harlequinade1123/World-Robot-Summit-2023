@@ -61,7 +61,7 @@ void Mecanum::calcForward(float omega0, float omega1, float omega2, float omega3
                                               (sin_yaw - cos_yaw) * omega1 +
                                               (sin_yaw + cos_yaw) * omega2 +
                                               (sin_yaw - cos_yaw) * omega3);
-    this->saved_omega_ = this->RADIUS_ * 2.0 * (this->DEPTH_ + this->TREAD_) * (omega0 - omega1 - omega2 + omega3);
+    this->saved_omega_ = this->RADIUS_ * (omega0 - omega1 - omega2 + omega3) * 0.5 / (this->DEPTH_ + this->TREAD_);
 }
 
 void Mecanum::getVelocity(float &vx, float &vy, float &omega)

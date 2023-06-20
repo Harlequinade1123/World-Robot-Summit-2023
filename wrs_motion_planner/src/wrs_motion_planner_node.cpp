@@ -56,6 +56,7 @@ int main(int argc, char **argv)
         //std::cout << ori_mat << std::endl;
         
         //std::cout << q.transpose() << std::endl;
+        /**
         for (int i = 0; i < 50; i++)
         {
             pos_vec(1) -= 1;
@@ -157,44 +158,49 @@ int main(int argc, char **argv)
             arm_joint_pub.publish(arm_joint_msg);
             usleep(25000);
         }
-        /**
-        mecanum.calcInvese(100, 0, 0);
-        mecanum.getRAD(omega0, omega1, omega2, omega3);
-        wheel_joint_msg.header.stamp = ros::Time::now();
-        wheel_joint_msg.velocity[0] = omega0;
-        wheel_joint_msg.velocity[1] = omega1;
-        wheel_joint_msg.velocity[2] = omega2;
-        wheel_joint_msg.velocity[3] = omega3;
-        wheel_joint_pub.publish(wheel_joint_msg);
-        usleep(3000000);
-        mecanum.calcInvese(0, 100, 0);
-        mecanum.getRAD(omega0, omega1, omega2, omega3);
-        wheel_joint_msg.header.stamp = ros::Time::now();
-        wheel_joint_msg.velocity[0] = omega0;
-        wheel_joint_msg.velocity[1] = omega1;
-        wheel_joint_msg.velocity[2] = omega2;
-        wheel_joint_msg.velocity[3] = omega3;
-        wheel_joint_pub.publish(wheel_joint_msg);
-        usleep(3000000);
-        mecanum.calcInvese(-100, 0, 0);
-        mecanum.getRAD(omega0, omega1, omega2, omega3);
-        wheel_joint_msg.header.stamp = ros::Time::now();
-        wheel_joint_msg.velocity[0] = omega0;
-        wheel_joint_msg.velocity[1] = omega1;
-        wheel_joint_msg.velocity[2] = omega2;
-        wheel_joint_msg.velocity[3] = omega3;
-        wheel_joint_pub.publish(wheel_joint_msg);
-        usleep(3000000);
-        mecanum.calcInvese(0, -100, 0);
-        mecanum.getRAD(omega0, omega1, omega2, omega3);
-        wheel_joint_msg.header.stamp = ros::Time::now();
-        wheel_joint_msg.velocity[0] = omega0;
-        wheel_joint_msg.velocity[1] = omega1;
-        wheel_joint_msg.velocity[2] = omega2;
-        wheel_joint_msg.velocity[3] = omega3;
-        wheel_joint_pub.publish(wheel_joint_msg);
-        usleep(3000000);
         **/
-        rate.sleep();
+        mecanum.calcInvese(100, 0, M_PI / 36);
+        mecanum.getRAD(omega0, omega1, omega2, omega3);
+        wheel_joint_msg.header.stamp = ros::Time::now();
+        wheel_joint_msg.velocity[0] = omega0;
+        wheel_joint_msg.velocity[1] = omega1;
+        wheel_joint_msg.velocity[2] = omega2;
+        wheel_joint_msg.velocity[3] = omega3;
+        wheel_joint_pub.publish(wheel_joint_msg);
+        usleep(3000000);
+        mecanum.calcInvese(0, 100, M_PI / 36);
+        mecanum.getRAD(omega0, omega1, omega2, omega3);
+        wheel_joint_msg.header.stamp = ros::Time::now();
+        wheel_joint_msg.velocity[0] = omega0;
+        wheel_joint_msg.velocity[1] = omega1;
+        wheel_joint_msg.velocity[2] = omega2;
+        wheel_joint_msg.velocity[3] = omega3;
+        wheel_joint_pub.publish(wheel_joint_msg);
+        usleep(3000000);
+        mecanum.calcInvese(-100, 0, M_PI / 36);
+        mecanum.getRAD(omega0, omega1, omega2, omega3);
+        wheel_joint_msg.header.stamp = ros::Time::now();
+        wheel_joint_msg.velocity[0] = omega0;
+        wheel_joint_msg.velocity[1] = omega1;
+        wheel_joint_msg.velocity[2] = omega2;
+        wheel_joint_msg.velocity[3] = omega3;
+        wheel_joint_pub.publish(wheel_joint_msg);
+        usleep(3000000);
+        mecanum.calcInvese(0, -100, M_PI / 36);
+        mecanum.getRAD(omega0, omega1, omega2, omega3);
+        wheel_joint_msg.header.stamp = ros::Time::now();
+        wheel_joint_msg.velocity[0] = omega0;
+        wheel_joint_msg.velocity[1] = omega1;
+        wheel_joint_msg.velocity[2] = omega2;
+        wheel_joint_msg.velocity[3] = omega3;
+        wheel_joint_pub.publish(wheel_joint_msg);
+        usleep(3000000);
+
+        //wheel_joint_msg.header.stamp = ros::Time::now();
+        //wheel_joint_msg.velocity[0] = 0;
+        //wheel_joint_msg.velocity[1] = 0;
+        //wheel_joint_msg.velocity[2] = 0;
+        //wheel_joint_msg.velocity[3] = 0;
+        //wheel_joint_pub.publish(wheel_joint_msg);
     }
 }

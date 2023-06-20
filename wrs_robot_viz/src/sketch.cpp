@@ -43,8 +43,8 @@ void Sketch::wheelJointCallback(const sensor_msgs::JointStateConstPtr &msg)
                                     msg->velocity[3] );
         float vx, vy, omega;
         this->mecanum.getVelocity (vx, vy, omega);
-        this->odom_msg_.twist.twist.linear.x  = vx * 0.000001;
-        this->odom_msg_.twist.twist.linear.y  = vy * 0.000001;
+        this->odom_msg_.twist.twist.linear.x  = vx * 0.001;
+        this->odom_msg_.twist.twist.linear.y  = vy * 0.001;
         this->odom_msg_.twist.twist.angular.z = omega;
     }
     this->wheel_mtx_.unlock();
@@ -88,12 +88,11 @@ void Sketch::parallelTask1()
         ros_now = ros::Time::now();
         this->wheel_mtx_.lock();
         ros_duration = ros_now - ros_old;
-        double delta_time = ros_duration.nsec / 1000000;
-        double qz_tmp = 0;//this->odom_msg_.pose.pose.orientation.z;
-        double qw_tmp = 1;//this->odom_msg_.pose.pose.orientation.w;
+        double delta_time = ros_duration.nsec * 0.000000001;
         this->odom_msg_.header.stamp = ros_now;
-        this->odom_msg_.pose.pose.orientation.z += 0;//qw_tmp * delta_time * 0.5 * odom_msg_.twist.twist.angular.z;
-        this->odom_msg_.pose.pose.orientation.w += 0;//qz_tmp * delta_time * 0.5 * odom_msg_.twist.twist.angular.z;
+        this->robot_yaw += odom_msg_.twist.twist.angular.z * delta_time;
+        this->odom_msg_.pose.pose.orientation.z = sin(robot_yaw / 2);
+        this->odom_msg_.pose.pose.orientation.w = cos(robot_yaw / 2);
         this->odom_msg_.pose.pose.position.x += this->odom_msg_.twist.twist.linear.x * delta_time;
         this->odom_msg_.pose.pose.position.y += this->odom_msg_.twist.twist.linear.y * delta_time;
         this->wheel_odom_pub_.publish(this->odom_msg_);
@@ -174,7 +173,6 @@ void Sketch::updateRobot(float dt)
     {
         this->robot_x   = odom_msg_.pose.pose.position.x * 1000;//[m] -> [mm]
         this->robot_y   = odom_msg_.pose.pose.position.y * 1000;//[m] -> [mm]
-        this->robot_yaw = 0.0;
         this->wheel_mtx_.unlock();
     }
     if (this->arm_mtx_.try_lock())
