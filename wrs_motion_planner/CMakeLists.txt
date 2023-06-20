@@ -15,6 +15,7 @@ catkin_package(
 #  CATKIN_DEPENDS geometry_msgs nav_msgs roscpp sensor_msgs std_msgs
 #  DEPENDS system_lib
 )
+find_package (Eigen3 REQUIRED)
 
 include_directories(
   include
@@ -25,3 +26,4 @@ add_executable(${PROJECT_NAME}_node src/wrs_motion_planner_node.cpp src/kinemati
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
 )
+target_link_libraries(${PROJECT_NAME}_node Eigen3::Eigen)

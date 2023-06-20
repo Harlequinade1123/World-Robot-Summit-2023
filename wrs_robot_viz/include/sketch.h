@@ -9,6 +9,24 @@
 
 class Sketch : public PSketch
 {
+    public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+    Sketch();
+    void setup();
+    void draw();
+    void updateRobot(float dt);
+    void drawRobot();
+    void drawArm();
+    void keyEvent(int key, int action);
+    void mouseButtonEvent(int button, int action);
+    void cursorPosEvent(double xpos, double ypos);
+    void scrollEvent(double xoffset, double yoffset);
+    void wheelJointCallback(const sensor_msgs::JointStateConstPtr &msg);
+    void armJointCallback(const sensor_msgs::JointStateConstPtr &msg);
+    void parallelTask1();
+    void parallelTask2();
+    void parallelTask3();
+
     private:
     ros::NodeHandle nh_;
     ros::Publisher  wheel_odom_pub_;
@@ -26,6 +44,7 @@ class Sketch : public PSketch
     ros::Time ros_old = ros::Time::now();
     
     Mecanum mecanum;
+    CraneX7 craneX7;
     bool dxl_is_connected = true;
     uint8_t ids[4]  = { 14, 11, 12, 13 };
     float   vals[4] = { 0.0, 0.0, 0.0, 0.0 };
@@ -46,7 +65,16 @@ class Sketch : public PSketch
 
     float arm_size = 30;
     float arm_lengths[8] = { 41.0, 64.0, 65.0, 185.0, 121.0, 129.0, 19.0, 24.0 };
-    float arm_angles[8]  = { 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2 };
+    float arm_angles[8]  = { 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0 };
+    float target_arm_angles[8]  = { 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0 };
+    float end_effector_angle = 0.0;
+    float angle_rpm = 50;
+    Eigen::VectorXd q_vec;
+    int   axis_num  = 6;
+
+    float cranex7_x;
+    float cranex7_y;
+    float cranex7_z;
 
     float old_MOUSEX = 0;
     float old_MOUSEY = 0;
@@ -54,20 +82,4 @@ class Sketch : public PSketch
     float camera_angle    =   0.0;
     float camera_distance = 600.0;
     float camera_height   = 250.0;
-
-    public:
-    Sketch();
-    void setup();
-    void draw();
-    void drawRobot();
-    void drawArm();
-    void keyEvent(int key, int action);
-    void mouseButtonEvent(int button, int action);
-    void cursorPosEvent(double xpos, double ypos);
-    void scrollEvent(double xoffset, double yoffset);
-    void wheelJointCallback(const sensor_msgs::JointStateConstPtr &msg);
-    void armJointCallback(const sensor_msgs::JointStateConstPtr &msg);
-    void parallelTask1();
-    void parallelTask2();
-    void parallelTask3();
 };

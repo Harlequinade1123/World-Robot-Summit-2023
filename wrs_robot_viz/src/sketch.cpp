@@ -3,7 +3,9 @@
 Sketch::Sketch() : PSketch()
 {
     this->mecanum = Mecanum(50, 250, 270);
-    callback_time_   = ros::Time::now();
+    this->craneX7 = CraneX7(this->arm_lengths, 7, 6);
+    this->q_vec   = Eigen::VectorXd(this->axis_num);
+    this->callback_time_                    = ros::Time::now();
     this->odom_msg_.pose.pose.position.x    = 0.0;
     this->odom_msg_.pose.pose.position.y    = 0.0;
     this->odom_msg_.pose.pose.position.z    = 0.0;
@@ -23,8 +25,8 @@ Sketch::Sketch() : PSketch()
 
     this->wheel_odom_pub_  = this->nh_.advertise<nav_msgs::Odometry>("/wrs/wheel/odom", 10);
     this->arm_pose_pub_    = this->nh_.advertise<geometry_msgs::PoseStamped>("/wrs/arm/pose", 10);
-    this->wheel_joint_sub_ = this->nh_.subscribe("/wrs/wheel/read", 10, &Sketch::wheelJointCallback, this);
-    this->arm_joint_sub_   = this->nh_.subscribe("/wrs/arm/read", 10, &Sketch::armJointCallback, this);
+    this->wheel_joint_sub_ = this->nh_.subscribe("/wrs/wheel/write", 10, &Sketch::wheelJointCallback, this);
+    this->arm_joint_sub_   = this->nh_.subscribe("/wrs/arm/write", 10, &Sketch::armJointCallback, this);
 
     size(800, 800, P3D);
 }
@@ -51,12 +53,12 @@ void Sketch::wheelJointCallback(const sensor_msgs::JointStateConstPtr &msg)
 void Sketch::armJointCallback(const sensor_msgs::JointStateConstPtr &msg)
 {
     this->arm_mtx_.lock();
-    if (callback_time_ < msg->header.stamp && 8 <= msg->position.size())
+    if (callback_time_ < msg->header.stamp)
     {
         callback_time_ = msg->header.stamp;
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < msg->position.size(); i++)
         {
-            arm_angles[i] = msg->position[i];
+            this->target_arm_angles[i] = msg->position[i];
         }
     }
     this->arm_mtx_.unlock();
@@ -77,12 +79,27 @@ void Sketch::parallelTask1()
         double delta_time = ros_duration.nsec / 1000000;
         double qz_tmp = 0;//this->odom_msg_.pose.pose.orientation.z;
         double qw_tmp = 1;//this->odom_msg_.pose.pose.orientation.w;
+        this->odom_msg_.header.stamp = ros_now;
         this->odom_msg_.pose.pose.orientation.z += 0;//qw_tmp * delta_time * 0.5 * odom_msg_.twist.twist.angular.z;
         this->odom_msg_.pose.pose.orientation.w += 0;//qz_tmp * delta_time * 0.5 * odom_msg_.twist.twist.angular.z;
         this->odom_msg_.pose.pose.position.x += this->odom_msg_.twist.twist.linear.x * delta_time;
         this->odom_msg_.pose.pose.position.y += this->odom_msg_.twist.twist.linear.y * delta_time;
         this->wheel_odom_pub_.publish(this->odom_msg_);
         this->wheel_mtx_.unlock();
+        this->arm_mtx_.lock();
+        for (int i = 0; i < this->axis_num; i++)
+        {
+            this->q_vec(i) = this->arm_angles[i];
+        }
+        this->craneX7.calcForward(this->q_vec);
+        double x, y, z;
+        this->craneX7.getXYZ(x, y, z);
+        this->arm_pose_msg_.header.stamp = ros_now;
+        this->arm_pose_msg_.pose.position.x = x;
+        this->arm_pose_msg_.pose.position.y = y;
+        this->arm_pose_msg_.pose.position.z = z;
+        this->arm_pose_pub_.publish(this->arm_pose_msg_);
+        this->arm_mtx_.unlock();
         ros_old = ros_now;
         rate.sleep();
     }
@@ -118,14 +135,8 @@ void Sketch::draw()
     }
     
     double dt = 1.0 / 500.0;
-    if (this->wheel_mtx_.try_lock())
-    {
-        this->robot_x   = odom_msg_.pose.pose.position.x * 1000;//[m] -> [mm]
-        this->robot_y   = odom_msg_.pose.pose.position.y * 1000;//[m] -> [mm]
-        this->robot_yaw = 0.0;
-        this->wheel_mtx_.unlock();
-    }
-    
+
+    this->updateRobot(dt);
     this->drawRobot();
     translate(0.0, 0.0, this->robot_height / 2);
     this->drawArm();
@@ -203,6 +214,40 @@ void Sketch::scrollEvent(double xoffset, double yoffset)
         this->camera_height = 1000;
     }
     this->setCamera(this->camera_distance, this->camera_height, this->camera_angle);
+}
+
+void Sketch::updateRobot(float dt)
+{
+    if (this->wheel_mtx_.try_lock())
+    {
+        this->robot_x   = odom_msg_.pose.pose.position.x * 1000;//[m] -> [mm]
+        this->robot_y   = odom_msg_.pose.pose.position.y * 1000;//[m] -> [mm]
+        this->robot_yaw = 0.0;
+        this->wheel_mtx_.unlock();
+    }
+    if (this->arm_mtx_.try_lock())
+    {
+        for (int i = 0; i < axis_num; i++)
+        {
+            float sign = 0.0;
+            float angle_error = this->target_arm_angles[i] - this->arm_angles[i];
+            if (angle_error > 0.01)
+            {
+                sign = 1.0;
+                this->arm_angles[i] += sign * angle_rpm * M_PI / 30.0 * dt;
+            }
+            else if (angle_error < -0.01)
+            {
+                sign = -1.0;
+                this->arm_angles[i] += sign * angle_rpm * M_PI / 30.0 * dt;
+            }
+            else
+            {
+                this->arm_angles[i] = this->target_arm_angles[i];
+            }
+        }
+        this->arm_mtx_.unlock();
+    }
 }
 
 void Sketch::drawRobot()
