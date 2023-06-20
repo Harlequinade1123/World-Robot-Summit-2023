@@ -91,6 +91,27 @@ void Dynamixel::writeBulkPosition(int8_t *ids, int32_t *vals, int size)
     groupBulkWrite.txPacket();
 }
 
+void Dynamixel::writeBulkPosAndOneVel(int8_t *ids, int32_t *vals, int size, int8_t vel_id, int32_t vel)
+{
+    dynamixel::GroupBulkWrite groupBulkWrite(this->portHandler, this->packetHandler);
+    groupBulkWrite.clearParam();
+    uint8_t param_goal_position[4];
+    for (int i = 0; i < size; i++)
+    {
+        param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(vals[i]));
+        param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(vals[i]));
+        param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(vals[i]));
+        param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(vals[i]));
+        groupBulkWrite.addParam(ids[i], this->ADDRESS_GOAL_POSITION, 4, param_goal_position);
+    }
+    param_goal_position[0] = DXL_LOBYTE(DXL_LOWORD(vel));
+    param_goal_position[1] = DXL_HIBYTE(DXL_LOWORD(vel));
+    param_goal_position[2] = DXL_LOBYTE(DXL_HIWORD(vel));
+    param_goal_position[3] = DXL_HIBYTE(DXL_HIWORD(vel));
+    groupBulkWrite.addParam(vel_id, this->ADDRESS_GOAL_VELOCITY, 4, param_goal_position);
+    groupBulkWrite.txPacket();
+}
+
 void Dynamixel::writeRPM(uint8_t id, float data)
 {
     this->writeVelocity(id, static_cast<int32_t>(data / 0.229));

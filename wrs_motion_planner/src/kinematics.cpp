@@ -91,12 +91,12 @@ void Mecanum::getRPM(float &omega0, float &omega1, float &omega2, float &omega3)
 CraneX7::CraneX7()
 {}
 
-CraneX7::CraneX7(const float links[8], const int link_num, const int axis_num)
+CraneX7::CraneX7(const float links[7], const int link_num, const int axis_num)
 {
     this->LINK_NUM_ = link_num;
     this->AXIS_NUM_ = axis_num;
     double L = 0.0;
-    for (int i = 0; i < LINK_NUM_; i++)
+    for (int i = 0; i < this->LINK_NUM_; i++)
     {
         this->INIT_LINK_VECS_[i] = Eigen::Vector3d(0, 0, links[i]);
         L += links[i];
@@ -106,7 +106,7 @@ CraneX7::CraneX7(const float links[8], const int link_num, const int axis_num)
         }
         else
         {
-            this->INIT_AXIS_VECS_[i] = Eigen::Vector3d(0, 1, 0);
+            this->INIT_AXIS_VECS_[i] = Eigen::Vector3d(0, -1, 0);
         }
     }
     this->jacobian_ = Eigen::MatrixXd(6, this->AXIS_NUM_);
@@ -143,12 +143,12 @@ void CraneX7::calcForward(Eigen::VectorXd &angle_vec)
         }
         else
         {
-            rotation_mat = Eigen::AngleAxisd(angle_vec(i), Eigen::Vector3d(0, 1, 0));
+            rotation_mat = Eigen::AngleAxisd(angle_vec(i), Eigen::Vector3d(0, -1, 0));
         }
         this->orientation_mat_FK_ = this->orientation_mat_FK_ * rotation_mat;
         link_vecs_[i + 1] = this->orientation_mat_FK_ * INIT_LINK_VECS_[i + 1];
         axis_vecs_[i] = this->orientation_mat_FK_ * INIT_AXIS_VECS_[i];
-        this->pos_vec_FK_ += link_vecs_[i];
+        this->pos_vec_FK_ += link_vecs_[i + 1];
     }
 }
 

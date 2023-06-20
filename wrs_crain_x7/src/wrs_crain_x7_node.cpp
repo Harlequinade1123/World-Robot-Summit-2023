@@ -14,6 +14,9 @@ class CrainX7Node
     int32_t vals_[8]     = { 0, 0, 0, 0, 0, 0, 0, 0 };
     int32_t get_vals_[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
     int angle_size_      = 8;
+    int8_t end_effector_id_   = 28;
+    int32_t end_effector_vel_ = 500;
+    int32_t end_effector_dir_ = 0;
     sensor_msgs::JointState joint_msg_;
     std::mutex mtx_;
     ros::Time callback_time_;
@@ -42,20 +45,22 @@ void CrainX7Node::init()
     this->dxl_.torqueOn(27);
     this->dxl_.torqueOn(28);
     this->dxl_.torqueOn(29);
-    this->dxl_.readBulkPosition(this->ids_, this->vals_, 8);
+    this->dxl_.readBulkPosition(this->ids_, this->vals_, this->angle_size_);
 }
 
 void CrainX7Node::write()
 {
-    this->dxl_.writeBulkPosition(this->ids_, this->vals_, this->angle_size_);
+    //手先効果器の回転に対応
+    this->dxl_.writeBulkPosAndOneVel(this->ids_, this->vals_, this->angle_size_, this->end_effector_id_, this->end_effector_dir_ * this->end_effector_vel_);
+    //this->dxl_.writeBulkPosition(this->ids_, this->vals_, this->angle_size_);
 }
 
 void CrainX7Node::read()
 {
-    if (this->dxl_.readBulkPosition(this->ids_, this->get_vals_, 7))
+    if (this->dxl_.readBulkPosition(this->ids_, this->get_vals_, this->angle_size_))
     {
         this->joint_msg_.header.stamp = ros::Time::now();
-        for (int i = 0; i < 7; i++)
+        for (int i = 0; i < this->angle_size_; i++)
         {
             this->joint_msg_.position[i] = map(static_cast<double>(get_vals_[i]), 0, 4096, -M_PI, M_PI);
         }
@@ -86,6 +91,19 @@ void CrainX7Node::jointCallback(const sensor_msgs::JointStateConstPtr &msg)
             this->vals_[i] = map(msg->position[i], -M_PI, M_PI, 0, 4096);
         }
         this->angle_size_ = msg->position.size();
+        
+        if (0 < msg->velocity.size() && 0 < 1.0 <= msg->velocity[0])
+        {
+            this->end_effector_dir_ = 1;
+        }
+        else if (0 < msg->velocity.size() && 0 < msg->velocity[0] <= -1.0)
+        {
+            this->end_effector_dir_ = -1;
+        }
+        else
+        {
+            this->end_effector_dir_ = 0;
+        }
         mtx_.unlock();
     }
 }

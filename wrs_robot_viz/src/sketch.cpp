@@ -26,7 +26,7 @@ Sketch::Sketch() : PSketch()
     this->wheel_odom_pub_  = this->nh_.advertise<nav_msgs::Odometry>("/wrs/wheel/odom", 10);
     this->arm_pose_pub_    = this->nh_.advertise<geometry_msgs::PoseStamped>("/wrs/arm/pose", 10);
     this->wheel_joint_sub_ = this->nh_.subscribe("/wrs/wheel/write", 10, &Sketch::wheelJointCallback, this);
-    this->arm_joint_sub_   = this->nh_.subscribe("/wrs/arm/read", 10, &Sketch::armJointCallback, this);
+    this->arm_joint_sub_   = this->nh_.subscribe("/wrs/arm/write", 10, &Sketch::armJointCallback, this);
 
     size(800, 800, P3D);
 }
@@ -34,7 +34,7 @@ Sketch::Sketch() : PSketch()
 void Sketch::wheelJointCallback(const sensor_msgs::JointStateConstPtr &msg)
 {
     this->wheel_mtx_.lock();
-    if (callback_time_ < msg->header.stamp && 4 <= msg->velocity.size())
+    if (is_simulation || (callback_time_ < msg->header.stamp && 6 <= msg->velocity.size()))
     {
         callback_time_ = msg->header.stamp;
         this->mecanum.calcForward ( msg->velocity[0],
@@ -53,12 +53,24 @@ void Sketch::wheelJointCallback(const sensor_msgs::JointStateConstPtr &msg)
 void Sketch::armJointCallback(const sensor_msgs::JointStateConstPtr &msg)
 {
     this->arm_mtx_.lock();
-    if (callback_time_ < msg->header.stamp)
+    if (is_simulation || callback_time_ < msg->header.stamp)
     {
         callback_time_ = msg->header.stamp;
         for (int i = 0; i < msg->position.size(); i++)
         {
             this->target_arm_angles[i] = msg->position[i];
+        }
+        if (0 < msg->velocity.size() && 0 < 1.0 <= msg->velocity[0])
+        {
+            this->end_effector_dir_ = 1.0;
+        }
+        else if (0 < msg->velocity.size() && msg->velocity[0] <= -1.0)
+        {
+            this->end_effector_dir_ = -1.0;
+        }
+        else
+        {
+            this->end_effector_dir_ = 0.0;
         }
     }
     this->arm_mtx_.unlock();
@@ -139,6 +151,7 @@ void Sketch::draw()
     this->updateRobot(dt);
     this->drawRobot();
     translate(0.0, 0.0, this->robot_height / 2);
+    translate(this->robot_depth / 2.0, 0.0, 0.0);
     this->drawArm();
 }
 
@@ -153,6 +166,149 @@ void Sketch::keyEvent(int key, int action)
         if (key == GLFW_KEY_LEFT)
             rotateCamera(-M_PI / 18);
     }
+}
+
+void Sketch::updateRobot(float dt)
+{
+    if (this->wheel_mtx_.try_lock())
+    {
+        this->robot_x   = odom_msg_.pose.pose.position.x * 1000;//[m] -> [mm]
+        this->robot_y   = odom_msg_.pose.pose.position.y * 1000;//[m] -> [mm]
+        this->robot_yaw = 0.0;
+        this->wheel_mtx_.unlock();
+    }
+    if (this->arm_mtx_.try_lock())
+    {
+        for (int i = 0; i < axis_num; i++)
+        {
+            float sign = 0.0;
+            float angle_error = this->target_arm_angles[i] - this->arm_angles[i];
+            if (angle_error > 0.01)
+            {
+                sign = 1.0;
+                this->arm_angles[i] += sign * this->angle_rpm_ * M_PI / 30.0 * dt;
+            }
+            else if (angle_error < -0.01)
+            {
+                sign = -1.0;
+                this->arm_angles[i] += sign * this->angle_rpm_ * M_PI / 30.0 * dt;
+            }
+            else
+            {
+                this->arm_angles[i] = this->target_arm_angles[i];
+            }
+            this->end_effector_angle_ += this->end_effector_dir_ * this->end_effector_vel_ * M_PI / 30.0 * dt;
+        }
+        this->arm_mtx_.unlock();
+    }
+}
+
+void Sketch::drawRobot()
+{
+    stroke(50);
+    translate(this->robot_x, this->robot_y, this->robot_height / 2 + this->wheel_radius);
+    rotateZ(this->robot_yaw);
+    fill(150);
+    box(this->robot_depth, this->robot_tread - this->wheel_width, this->robot_height);
+    pushMatrix();
+    translate(0.0, 0.0, this->wheel_radius * 2 - this->robot_height / 2 - 30);
+    box(this->robot_depth + this->wheel_radius * 2, this->robot_tread + this->wheel_width, 30);
+    popMatrix();
+    fill(100);
+    pushMatrix();
+    translate(this->robot_depth / 2, this->robot_tread / 2,-this->robot_height / 2);
+    rotateX(M_PI_2);
+    cylinder(this->wheel_radius, this->wheel_width);
+    popMatrix();
+    pushMatrix();
+    translate(this->robot_depth / 2, -this->robot_tread / 2,-this->robot_height / 2);
+    rotateX(M_PI_2);
+    cylinder(this->wheel_radius, this->wheel_width);
+    popMatrix();
+    pushMatrix();
+    translate(-this->robot_depth / 2, this->robot_tread / 2,-this->robot_height / 2);
+    rotateX(M_PI_2);
+    cylinder(this->wheel_radius, this->wheel_width);
+    popMatrix();
+    pushMatrix();
+    translate(-this->robot_depth / 2, -this->robot_tread / 2,-this->robot_height / 2);
+    rotateX(M_PI_2);
+    cylinder(this->wheel_radius, this->wheel_width);
+    popMatrix();
+}
+
+void Sketch::drawArm()
+{
+    fill(110);
+    translate(0.0, 0.0, this->arm_lengths[0] / 2.0);
+    box(this->arm_size * 2, this->arm_size * 2, this->arm_lengths[0]);
+    fill(80);
+    translate(0.0, 0.0, -this->arm_lengths[0] / 2.0 + this->arm_lengths[0] / 8.5);
+    box(this->arm_size * 3, this->arm_size * 3, this->arm_lengths[0] / 4);
+    translate(0.0, 0.0, this->arm_lengths[0] / 2.0 - this->arm_lengths[0] / 8.5);
+    fill(110);
+    translate(0.0, 0.0, this->arm_lengths[0] / 2.0);
+    
+    rotateZ(this->arm_angles[0]);
+
+    translate(0.0, 0.0, this->arm_lengths[1] / 2.0);
+    box(this->arm_size, this->arm_size, this->arm_lengths[1]);
+    translate(0.0, 0.0, this->arm_lengths[1] / 2.0);
+    
+    fill(130);
+    rotateX(M_PI_2);
+    cylinder(this->arm_size / 2.0 * 1.2, this->arm_size * 1.1);
+    rotateX(-M_PI_2);
+    fill(110);
+
+    rotateY(-this->arm_angles[1]);
+
+    translate(0.0, 0.0, this->arm_lengths[2] / 2.0);
+    box(this->arm_size, this->arm_size, this->arm_lengths[2]);
+    translate(0.0, 0.0, this->arm_lengths[2] / 2.0);
+
+    rotateZ(this->arm_angles[2]);
+
+    translate(0.0, 0.0, this->arm_lengths[3] / 2.0);
+    box(this->arm_size, this->arm_size, this->arm_lengths[3]);
+    translate(0.0, 0.0, this->arm_lengths[3] / 2.0);
+
+    fill(130);
+    rotateX(M_PI_2);
+    cylinder(this->arm_size / 2.0 * 1.2, this->arm_size * 1.1);
+    rotateX(-M_PI_2);
+    fill(110);
+
+    rotateY(-this->arm_angles[3]);
+
+    translate(0.0, 0.0, this->arm_lengths[4] / 2.0);
+    box(this->arm_size, this->arm_size, this->arm_lengths[4]);
+    translate(0.0, 0.0, this->arm_lengths[4] / 2.0);
+
+    rotateZ(this->arm_angles[4]);
+
+    translate(0.0, 0.0, this->arm_lengths[5] / 2.0);
+    box(this->arm_size, this->arm_size, this->arm_lengths[5]);
+    translate(0.0, 0.0, this->arm_lengths[5] / 2.0);
+
+    fill(130);
+    rotateX(M_PI_2);
+    cylinder(this->arm_size / 2.0 * 1.2, this->arm_size * 1.1);
+    rotateX(-M_PI_2);
+    fill(110);
+
+    rotateY(-this->arm_angles[5]);
+
+    translate(0.0, 0.0, (this->arm_lengths[6] - this->end_effector_length_) / 2.0);
+    box(this->arm_size, this->arm_size, this->arm_lengths[6] - this->end_effector_length_);
+    translate(0.0, 0.0, (this->arm_lengths[6] - this->end_effector_length_) / 2.0);
+
+    rotateZ(this->end_effector_angle_);
+
+    fill(200, 200, 0);
+    translate(0.0, 0.0, this->end_effector_length_ / 2.0);
+    box(this->arm_size * 1.5, this->arm_size * 1.5, this->end_effector_length_);
+    translate(0.0, 0.0, this->end_effector_length_ / 2.0);
 }
 
 void Sketch::mouseButtonEvent(int button, int action)
@@ -214,141 +370,4 @@ void Sketch::scrollEvent(double xoffset, double yoffset)
         this->camera_height = 1000;
     }
     this->setCamera(this->camera_distance, this->camera_height, this->camera_angle);
-}
-
-void Sketch::updateRobot(float dt)
-{
-    if (this->wheel_mtx_.try_lock())
-    {
-        this->robot_x   = odom_msg_.pose.pose.position.x * 1000;//[m] -> [mm]
-        this->robot_y   = odom_msg_.pose.pose.position.y * 1000;//[m] -> [mm]
-        this->robot_yaw = 0.0;
-        this->wheel_mtx_.unlock();
-    }
-    if (this->arm_mtx_.try_lock())
-    {
-        for (int i = 0; i < axis_num; i++)
-        {
-            float sign = 0.0;
-            float angle_error = this->target_arm_angles[i] - this->arm_angles[i];
-            if (angle_error > 0.01)
-            {
-                sign = 1.0;
-                this->arm_angles[i] += sign * angle_rpm * M_PI / 30.0 * dt;
-            }
-            else if (angle_error < -0.01)
-            {
-                sign = -1.0;
-                this->arm_angles[i] += sign * angle_rpm * M_PI / 30.0 * dt;
-            }
-            else
-            {
-                this->arm_angles[i] = this->target_arm_angles[i];
-            }
-        }
-        this->arm_mtx_.unlock();
-    }
-}
-
-void Sketch::drawRobot()
-{
-    stroke(50);
-    translate(this->robot_x, this->robot_y, this->robot_height / 2 + this->wheel_radius);
-    rotateZ(this->robot_yaw);
-    fill(150);
-    box(this->robot_depth, this->robot_tread - this->wheel_width, this->robot_height);
-    pushMatrix();
-    translate(0.0, 0.0, this->wheel_radius * 2 - this->robot_height / 2 - 30);
-    box(this->robot_depth + this->wheel_radius * 2, this->robot_tread + this->wheel_width, 30);
-    popMatrix();
-    fill(100);
-    pushMatrix();
-    translate(this->robot_depth / 2, this->robot_tread / 2,-this->robot_height / 2);
-    rotateX(M_PI_2);
-    cylinder(this->wheel_radius, this->wheel_width);
-    popMatrix();
-    pushMatrix();
-    translate(this->robot_depth / 2, -this->robot_tread / 2,-this->robot_height / 2);
-    rotateX(M_PI_2);
-    cylinder(this->wheel_radius, this->wheel_width);
-    popMatrix();
-    pushMatrix();
-    translate(-this->robot_depth / 2, this->robot_tread / 2,-this->robot_height / 2);
-    rotateX(M_PI_2);
-    cylinder(this->wheel_radius, this->wheel_width);
-    popMatrix();
-    pushMatrix();
-    translate(-this->robot_depth / 2, -this->robot_tread / 2,-this->robot_height / 2);
-    rotateX(M_PI_2);
-    cylinder(this->wheel_radius, this->wheel_width);
-    popMatrix();
-}
-
-void Sketch::drawArm()
-{
-    fill(110);
-    translate(0.0, 0.0, this->arm_lengths[0] / 2.0);
-    box(this->arm_size * 2, this->arm_size * 2, this->arm_lengths[0]);
-    translate(0.0, 0.0, this->arm_lengths[0] / 2.0);
-    
-    rotateZ(this->arm_angles[0]);
-
-    translate(0.0, 0.0, this->arm_lengths[1] / 2.0);
-    box(this->arm_size, this->arm_size, this->arm_lengths[1]);
-    translate(0.0, 0.0, this->arm_lengths[1] / 2.0);
-    
-    fill(130);
-    rotateX(M_PI_2);
-    cylinder(this->arm_size / 2.0 * 1.2, this->arm_size * 1.1);
-    rotateX(-M_PI_2);
-    fill(110);
-
-    rotateY(this->arm_angles[1]);
-
-    translate(0.0, 0.0, this->arm_lengths[2] / 2.0);
-    box(this->arm_size, this->arm_size, this->arm_lengths[2]);
-    translate(0.0, 0.0, this->arm_lengths[2] / 2.0);
-
-    rotateZ(this->arm_angles[2]);
-
-    translate(0.0, 0.0, this->arm_lengths[3] / 2.0);
-    box(this->arm_size, this->arm_size, this->arm_lengths[3]);
-    translate(0.0, 0.0, this->arm_lengths[3] / 2.0);
-
-    fill(130);
-    rotateX(M_PI_2);
-    cylinder(this->arm_size / 2.0 * 1.2, this->arm_size * 1.1);
-    rotateX(-M_PI_2);
-    fill(110);
-
-    rotateY(this->arm_angles[3]);
-
-    translate(0.0, 0.0, this->arm_lengths[4] / 2.0);
-    box(this->arm_size, this->arm_size, this->arm_lengths[4]);
-    translate(0.0, 0.0, this->arm_lengths[4] / 2.0);
-
-    rotateZ(this->arm_angles[4]);
-
-    translate(0.0, 0.0, this->arm_lengths[5] / 2.0);
-    box(this->arm_size, this->arm_size, this->arm_lengths[5]);
-    translate(0.0, 0.0, this->arm_lengths[5] / 2.0);
-
-    fill(130);
-    rotateX(M_PI_2);
-    cylinder(this->arm_size / 2.0 * 1.2, this->arm_size * 1.1);
-    rotateX(-M_PI_2);
-    fill(110);
-
-    rotateY(this->arm_angles[5]);
-
-    translate(0.0, 0.0, this->arm_lengths[6] / 2.0);
-    box(this->arm_size, this->arm_size, this->arm_lengths[6]);
-    translate(0.0, 0.0, this->arm_lengths[6] / 2.0);
-
-    rotateZ(this->arm_angles[6]);
-
-    translate(0.0, 0.0, this->arm_lengths[7] / 2.0);
-    box(this->arm_size, this->arm_size, this->arm_lengths[7]);
-    translate(0.0, 0.0, this->arm_lengths[7] / 2.0);
-
 }

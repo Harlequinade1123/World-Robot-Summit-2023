@@ -14,25 +14,27 @@ int main(int argc, char **argv)
 
     sensor_msgs::JointState arm_joint_msg;
     arm_joint_msg.position.resize(6);
+    arm_joint_msg.velocity.resize(1);
 
     Mecanum mecanum(50, 250, 270);
     mecanum.setYawAngle(0);
     float omega0 = 0, omega1 = 0, omega2 = 0, omega3 = 0;
 
-    float arm_lengths[8] = { 41.0, 64.0, 65.0, 185.0, 121.0, 129.0, 19.0, 24.0 };
-    float arm_angles[8]  = { 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0 };
+    float end_effector_length_ = 24.0;
+    float arm_lengths[7] = { 41.0, 64.0, 65.0, 185.0, 121.0, 129.0, 19.0 + end_effector_length_ };
+    float arm_angles[6]  = { 0.0, -1.0, 0.0, -1.0, 0.0, -1.0 };
     CraneX7 craneX7(arm_lengths, 7, 6);
     Eigen::VectorXd q(6);
     Eigen::Vector3d pos_vec;
     Eigen::Matrix3d ori_mat;
-    q << 0.0, 1.0, 0.0, 1.0, 0.0, 1.0;
+    q << 0.0, -1.0, 0.0, -1.0, 0.0, -1.0;
+    ori_mat = Eigen::AngleAxisd(M_PI, Eigen::Vector3d(0, -1, 0));
     craneX7.calcForward(q);
     double x, y, z;
     craneX7.getXYZ(x, y, z);
     pos_vec << x, y, z;
-    craneX7.getR(ori_mat);
+    //craneX7.getR(ori_mat);
     craneX7.calcInvese(q, pos_vec, ori_mat);
-    std::cout << q.transpose() << std::endl;
     ros::Rate rate(100);
     while (ros::ok())
     {
@@ -57,6 +59,7 @@ int main(int argc, char **argv)
         for (int i = 0; i < 50; i++)
         {
             pos_vec(1) -= 1;
+            ori_mat = Eigen::AngleAxisd(M_PI, Eigen::Vector3d(0, -1, 0));
             craneX7.calcInvese(q, pos_vec, ori_mat);
             arm_joint_msg.header.stamp = ros::Time::now();
             arm_joint_msg.position[0] = q(0);
@@ -65,12 +68,21 @@ int main(int argc, char **argv)
             arm_joint_msg.position[3] = q(3);
             arm_joint_msg.position[4] = q(4);
             arm_joint_msg.position[5] = q(5);
+            arm_joint_msg.velocity[0] = 10.0;
             arm_joint_pub.publish(arm_joint_msg);
             usleep(25000);
         }
         for (int i = 0; i < 100; i++)
         {
             pos_vec(0) -= 1;
+            if (i < 50)
+            {
+                ori_mat = Eigen::AngleAxisd(M_PI + M_PI_2 / 50 * (i + 1), Eigen::Vector3d(0, -1, 0));
+            }
+            else
+            {
+                ori_mat = Eigen::AngleAxisd(M_PI + M_PI_2, Eigen::Vector3d(0, -1, 0));
+            }
             craneX7.calcInvese(q, pos_vec, ori_mat);
             arm_joint_msg.header.stamp = ros::Time::now();
             arm_joint_msg.position[0] = q(0);
@@ -79,12 +91,21 @@ int main(int argc, char **argv)
             arm_joint_msg.position[3] = q(3);
             arm_joint_msg.position[4] = q(4);
             arm_joint_msg.position[5] = q(5);
+            arm_joint_msg.velocity[0] = -10.0;
             arm_joint_pub.publish(arm_joint_msg);
             usleep(25000);
         }
         for (int i = 0; i < 100; i++)
         {
             pos_vec(1) += 1;
+            if (i < 50)
+            {
+                ori_mat = Eigen::AngleAxisd(M_PI + M_PI_2 - M_PI_2 / 50 * (i + 1), Eigen::Vector3d(0, -1, 0));
+            }
+            else
+            {
+                ori_mat = Eigen::AngleAxisd(M_PI, Eigen::Vector3d(0, -1, 0));
+            }
             craneX7.calcInvese(q, pos_vec, ori_mat);
             arm_joint_msg.header.stamp = ros::Time::now();
             arm_joint_msg.position[0] = q(0);
@@ -93,12 +114,21 @@ int main(int argc, char **argv)
             arm_joint_msg.position[3] = q(3);
             arm_joint_msg.position[4] = q(4);
             arm_joint_msg.position[5] = q(5);
+            arm_joint_msg.velocity[0] = 10.0;
             arm_joint_pub.publish(arm_joint_msg);
             usleep(25000);
         }
         for (int i = 0; i < 100; i++)
         {
             pos_vec(0) += 1;
+            if (i < 50)
+            {
+                ori_mat = Eigen::AngleAxisd(M_PI + M_PI_2 / 50 * (i + 1), Eigen::Vector3d(0, -1, 0));
+            }
+            else
+            {
+                ori_mat = Eigen::AngleAxisd(M_PI + M_PI_2, Eigen::Vector3d(0, -1, 0));
+            }
             craneX7.calcInvese(q, pos_vec, ori_mat);
             arm_joint_msg.header.stamp = ros::Time::now();
             arm_joint_msg.position[0] = q(0);
@@ -107,12 +137,14 @@ int main(int argc, char **argv)
             arm_joint_msg.position[3] = q(3);
             arm_joint_msg.position[4] = q(4);
             arm_joint_msg.position[5] = q(5);
+            arm_joint_msg.velocity[0] = -10.0;
             arm_joint_pub.publish(arm_joint_msg);
             usleep(25000);
         }
         for (int i = 0; i < 50; i++)
         {
             pos_vec(1) -= 1;
+            ori_mat = Eigen::AngleAxisd(M_PI + M_PI_2 - M_PI_2 / 50 * (i + 1), Eigen::Vector3d(0, -1, 0));
             craneX7.calcInvese(q, pos_vec, ori_mat);
             arm_joint_msg.header.stamp = ros::Time::now();
             arm_joint_msg.position[0] = q(0);
@@ -121,6 +153,7 @@ int main(int argc, char **argv)
             arm_joint_msg.position[3] = q(3);
             arm_joint_msg.position[4] = q(4);
             arm_joint_msg.position[5] = q(5);
+            arm_joint_msg.velocity[0] = 10.0;
             arm_joint_pub.publish(arm_joint_msg);
             usleep(25000);
         }

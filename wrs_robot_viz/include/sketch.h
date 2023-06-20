@@ -42,6 +42,8 @@ class Sketch : public PSketch
 
     ros::Time ros_now = ros::Time::now();
     ros::Time ros_old = ros::Time::now();
+
+    bool is_simulation = true;
     
     Mecanum mecanum;
     CraneX7 craneX7;
@@ -64,11 +66,14 @@ class Sketch : public PSketch
     float wheel_width  = 40;
 
     float arm_size = 30;
-    float arm_lengths[8] = { 41.0, 64.0, 65.0, 185.0, 121.0, 129.0, 19.0, 24.0 };
-    float arm_angles[8]  = { 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0 };
-    float target_arm_angles[8]  = { 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0 };
-    float end_effector_angle = 0.0;
-    float angle_rpm = 50;
+    float end_effector_length_ = 24.0;
+    float arm_lengths[7] = { 41.0, 64.0, 65.0, 185.0, 121.0, 129.0, 19.0 + end_effector_length_ };
+    float arm_angles[6]  = { 0.0, -1.0, 0.0, -1.0, 0.0, -1.0 };
+    float target_arm_angles[6]  = { 0.0, -1.0, 0.0, -1.0, 0.0, -1.0 };
+    float end_effector_angle_ = 0.0;
+    float end_effector_vel_   = 50.0;
+    float end_effector_dir_   = 0.0;
+    float angle_rpm_ = 50;
     Eigen::VectorXd q_vec;
     int   axis_num  = 6;
 
