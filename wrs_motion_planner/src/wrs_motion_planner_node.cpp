@@ -34,12 +34,12 @@ int main(int argc, char **argv)
     craneX7.getXYZ(x, y, z);
     pos_vec << x, y, z;
     //craneX7.getR(ori_mat);
-    craneX7.calcInvese(q, pos_vec, ori_mat);
+    craneX7.calcInverse(q, pos_vec, ori_mat);
     ros::Rate rate(100);
     while (ros::ok())
     {
         /**
-        craneX7.calcInvese(q, pos_vec, ori_mat);
+        craneX7.calcInverse(q, pos_vec, ori_mat);
         std::cout << q.transpose() << std::endl;
         arm_joint_msg.header.stamp = ros::Time::now();
         arm_joint_msg.position[0] = q(0);
@@ -61,7 +61,7 @@ int main(int argc, char **argv)
         {
             pos_vec(1) -= 1;
             ori_mat = Eigen::AngleAxisd(M_PI, Eigen::Vector3d(0, -1, 0));
-            craneX7.calcInvese(q, pos_vec, ori_mat);
+            craneX7.calcInverse(q, pos_vec, ori_mat);
             arm_joint_msg.header.stamp = ros::Time::now();
             arm_joint_msg.position[0] = q(0);
             arm_joint_msg.position[1] = q(1);
@@ -84,7 +84,7 @@ int main(int argc, char **argv)
             {
                 ori_mat = Eigen::AngleAxisd(M_PI + M_PI_2, Eigen::Vector3d(0, -1, 0));
             }
-            craneX7.calcInvese(q, pos_vec, ori_mat);
+            craneX7.calcInverse(q, pos_vec, ori_mat);
             arm_joint_msg.header.stamp = ros::Time::now();
             arm_joint_msg.position[0] = q(0);
             arm_joint_msg.position[1] = q(1);
@@ -107,7 +107,7 @@ int main(int argc, char **argv)
             {
                 ori_mat = Eigen::AngleAxisd(M_PI, Eigen::Vector3d(0, -1, 0));
             }
-            craneX7.calcInvese(q, pos_vec, ori_mat);
+            craneX7.calcInverse(q, pos_vec, ori_mat);
             arm_joint_msg.header.stamp = ros::Time::now();
             arm_joint_msg.position[0] = q(0);
             arm_joint_msg.position[1] = q(1);
@@ -130,7 +130,7 @@ int main(int argc, char **argv)
             {
                 ori_mat = Eigen::AngleAxisd(M_PI + M_PI_2, Eigen::Vector3d(0, -1, 0));
             }
-            craneX7.calcInvese(q, pos_vec, ori_mat);
+            craneX7.calcInverse(q, pos_vec, ori_mat);
             arm_joint_msg.header.stamp = ros::Time::now();
             arm_joint_msg.position[0] = q(0);
             arm_joint_msg.position[1] = q(1);
@@ -146,7 +146,7 @@ int main(int argc, char **argv)
         {
             pos_vec(1) -= 1;
             ori_mat = Eigen::AngleAxisd(M_PI + M_PI_2 - M_PI_2 / 50 * (i + 1), Eigen::Vector3d(0, -1, 0));
-            craneX7.calcInvese(q, pos_vec, ori_mat);
+            craneX7.calcInverse(q, pos_vec, ori_mat);
             arm_joint_msg.header.stamp = ros::Time::now();
             arm_joint_msg.position[0] = q(0);
             arm_joint_msg.position[1] = q(1);
@@ -159,7 +159,7 @@ int main(int argc, char **argv)
             usleep(25000);
         }
         **/
-        mecanum.calcInvese(100, 0, M_PI / 36);
+        mecanum.calcInverse(100, 0, M_PI / 36);
         mecanum.getRAD(omega0, omega1, omega2, omega3);
         wheel_joint_msg.header.stamp = ros::Time::now();
         wheel_joint_msg.velocity[0] = omega0;
@@ -168,7 +168,7 @@ int main(int argc, char **argv)
         wheel_joint_msg.velocity[3] = omega3;
         wheel_joint_pub.publish(wheel_joint_msg);
         usleep(3000000);
-        mecanum.calcInvese(0, 100, M_PI / 36);
+        mecanum.calcInverse(0, 100, M_PI / 36);
         mecanum.getRAD(omega0, omega1, omega2, omega3);
         wheel_joint_msg.header.stamp = ros::Time::now();
         wheel_joint_msg.velocity[0] = omega0;
@@ -177,7 +177,7 @@ int main(int argc, char **argv)
         wheel_joint_msg.velocity[3] = omega3;
         wheel_joint_pub.publish(wheel_joint_msg);
         usleep(3000000);
-        mecanum.calcInvese(-100, 0, M_PI / 36);
+        mecanum.calcInverse(-100, 0, M_PI / 36);
         mecanum.getRAD(omega0, omega1, omega2, omega3);
         wheel_joint_msg.header.stamp = ros::Time::now();
         wheel_joint_msg.velocity[0] = omega0;
@@ -186,7 +186,7 @@ int main(int argc, char **argv)
         wheel_joint_msg.velocity[3] = omega3;
         wheel_joint_pub.publish(wheel_joint_msg);
         usleep(3000000);
-        mecanum.calcInvese(0, -100, M_PI / 36);
+        mecanum.calcInverse(0, -100, M_PI / 36);
         mecanum.getRAD(omega0, omega1, omega2, omega3);
         wheel_joint_msg.header.stamp = ros::Time::now();
         wheel_joint_msg.velocity[0] = omega0;

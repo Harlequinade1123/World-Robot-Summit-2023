@@ -31,7 +31,7 @@ void Mecanum::setYawAngle(float yaw)
     this->robot_yaw_ = yaw;
 }
 
-void Mecanum::calcInvese(float vx, float vy, float omega)
+void Mecanum::calcInverse(float vx, float vy, float omega)
 {
     float sin_yaw = sin(this->robot_yaw_);
     float cos_yaw = cos(this->robot_yaw_);
@@ -256,7 +256,7 @@ void CraneX7::calcAngleAxis(Eigen::Matrix3d &orientation_mat)
     }
 }
 
-void CraneX7::calcInvese(Eigen::VectorXd& q, const Eigen::Vector3d& pos_vec, const Eigen::Matrix3d& R)
+void CraneX7::calcInverse(Eigen::VectorXd& q, const Eigen::Vector3d& pos_vec, const Eigen::Matrix3d& R)
 {
     double old_energy = 0.0;
     double new_energy = 0.0;

@@ -26,7 +26,7 @@ class Mecanum
     Mecanum(float radius, float depth, float tread);
     ~Mecanum();
     void setYawAngle(float yaw);
-    void calcInvese(float vx, float vy, float omega);
+    void calcInverse(float vx, float vy, float omega);
     void calcForward(float omega0, float omega1, float omega2, float omega3);
     void getVelocity(float &vx, float &vy, float &omega);
     void getRAD(float &omega0, float &omega1, float &omega2, float &omega3);
@@ -65,7 +65,7 @@ class CraneX7
     void calcJacobian();
     void calcErrorVec(const Eigen::Vector3d& pos_vec, const Eigen::Matrix3d& R);
     void calcAngleAxis(Eigen::Matrix3d &orientation_mat);
-    void calcInvese(Eigen::VectorXd& q, const Eigen::Vector3d& pos_vec, const Eigen::Matrix3d& R);
+    void calcInverse(Eigen::VectorXd& q, const Eigen::Vector3d& pos_vec, const Eigen::Matrix3d& R);
 
     private:
     int LINK_NUM_;
