@@ -31,16 +31,12 @@ int main(int argc, char **argv)
     craneX7.getXYZ(x, y, z);
     pos_vec << x, y, z;
     craneX7.getR(ori_mat);
-    pos_vec(0)-=50;
     craneX7.calcInvese(q, pos_vec, ori_mat);
     std::cout << q.transpose() << std::endl;
     ros::Rate rate(100);
     while (ros::ok())
     {
-        pos_vec(1)-=0.1;
-        //pos_vec(1)-=10;
-        //pos_vec(2)-=10;
-        
+        /**
         craneX7.calcInvese(q, pos_vec, ori_mat);
         std::cout << q.transpose() << std::endl;
         arm_joint_msg.header.stamp = ros::Time::now();
@@ -51,14 +47,82 @@ int main(int argc, char **argv)
         arm_joint_msg.position[4] = q(4);
         arm_joint_msg.position[5] = q(5);
         arm_joint_pub.publish(arm_joint_msg);
+        **/
+
         //std::cout << "publish" << std::endl;
         //printf("%lf %lf %lf\n", pos_vec(0), pos_vec(1), pos_vec(2));
         //std::cout << ori_mat << std::endl;
         
         //std::cout << q.transpose() << std::endl;
-        for (int i = 0; i < 6; i++)
+        for (int i = 0; i < 50; i++)
         {
-            //arm_joint_msg.position[i] = ;
+            pos_vec(1) -= 1;
+            craneX7.calcInvese(q, pos_vec, ori_mat);
+            arm_joint_msg.header.stamp = ros::Time::now();
+            arm_joint_msg.position[0] = q(0);
+            arm_joint_msg.position[1] = q(1);
+            arm_joint_msg.position[2] = q(2);
+            arm_joint_msg.position[3] = q(3);
+            arm_joint_msg.position[4] = q(4);
+            arm_joint_msg.position[5] = q(5);
+            arm_joint_pub.publish(arm_joint_msg);
+            usleep(25000);
+        }
+        for (int i = 0; i < 100; i++)
+        {
+            pos_vec(0) -= 1;
+            craneX7.calcInvese(q, pos_vec, ori_mat);
+            arm_joint_msg.header.stamp = ros::Time::now();
+            arm_joint_msg.position[0] = q(0);
+            arm_joint_msg.position[1] = q(1);
+            arm_joint_msg.position[2] = q(2);
+            arm_joint_msg.position[3] = q(3);
+            arm_joint_msg.position[4] = q(4);
+            arm_joint_msg.position[5] = q(5);
+            arm_joint_pub.publish(arm_joint_msg);
+            usleep(25000);
+        }
+        for (int i = 0; i < 100; i++)
+        {
+            pos_vec(1) += 1;
+            craneX7.calcInvese(q, pos_vec, ori_mat);
+            arm_joint_msg.header.stamp = ros::Time::now();
+            arm_joint_msg.position[0] = q(0);
+            arm_joint_msg.position[1] = q(1);
+            arm_joint_msg.position[2] = q(2);
+            arm_joint_msg.position[3] = q(3);
+            arm_joint_msg.position[4] = q(4);
+            arm_joint_msg.position[5] = q(5);
+            arm_joint_pub.publish(arm_joint_msg);
+            usleep(25000);
+        }
+        for (int i = 0; i < 100; i++)
+        {
+            pos_vec(0) += 1;
+            craneX7.calcInvese(q, pos_vec, ori_mat);
+            arm_joint_msg.header.stamp = ros::Time::now();
+            arm_joint_msg.position[0] = q(0);
+            arm_joint_msg.position[1] = q(1);
+            arm_joint_msg.position[2] = q(2);
+            arm_joint_msg.position[3] = q(3);
+            arm_joint_msg.position[4] = q(4);
+            arm_joint_msg.position[5] = q(5);
+            arm_joint_pub.publish(arm_joint_msg);
+            usleep(25000);
+        }
+        for (int i = 0; i < 50; i++)
+        {
+            pos_vec(1) -= 1;
+            craneX7.calcInvese(q, pos_vec, ori_mat);
+            arm_joint_msg.header.stamp = ros::Time::now();
+            arm_joint_msg.position[0] = q(0);
+            arm_joint_msg.position[1] = q(1);
+            arm_joint_msg.position[2] = q(2);
+            arm_joint_msg.position[3] = q(3);
+            arm_joint_msg.position[4] = q(4);
+            arm_joint_msg.position[5] = q(5);
+            arm_joint_pub.publish(arm_joint_msg);
+            usleep(25000);
         }
         /**
         mecanum.calcInvese(100, 0, 0);

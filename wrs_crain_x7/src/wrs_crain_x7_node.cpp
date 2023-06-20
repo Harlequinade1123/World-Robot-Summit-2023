@@ -13,6 +13,7 @@ class CrainX7Node
     int8_t  ids_[8]      = { 22, 23, 24, 25, 26, 27, 28, 29 };
     int32_t vals_[8]     = { 0, 0, 0, 0, 0, 0, 0, 0 };
     int32_t get_vals_[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+    int angle_size_      = 8;
     sensor_msgs::JointState joint_msg_;
     std::mutex mtx_;
     ros::Time callback_time_;
@@ -33,31 +34,30 @@ void CrainX7Node::init()
     this->joint_pub_ = this->nh_.advertise<sensor_msgs::JointState>("/wrs/arm/read", 10);
     this->joint_sub_ = this->nh_.subscribe("/wrs/arm/write", 10, &CrainX7Node::jointCallback, this);
     this->dxl_.begin("/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT5UJQQO-if00-port0", 1000000);
-    //this->dxl_.torqueOn(22);
-    //this->dxl_.torqueOn(23);
-    //this->dxl_.torqueOn(24);
-    //this->dxl_.torqueOn(25);
-    //this->dxl_.torqueOn(26);
-    //this->dxl_.torqueOn(27);
-    //this->dxl_.torqueOn(28);
-    //this->dxl_.torqueOn(29);
+    this->dxl_.torqueOn(22);
+    this->dxl_.torqueOn(23);
+    this->dxl_.torqueOn(24);
+    this->dxl_.torqueOn(25);
+    this->dxl_.torqueOn(26);
+    this->dxl_.torqueOn(27);
+    this->dxl_.torqueOn(28);
+    this->dxl_.torqueOn(29);
     this->dxl_.readBulkPosition(this->ids_, this->vals_, 8);
 }
 
 void CrainX7Node::write()
 {
-    this->dxl_.writeBulkPosition(this->ids_, this->vals_, 8);
+    this->dxl_.writeBulkPosition(this->ids_, this->vals_, this->angle_size_);
 }
 
 void CrainX7Node::read()
 {
-    if (this->dxl_.readBulkPosition(this->ids_, this->get_vals_, 8))
+    if (this->dxl_.readBulkPosition(this->ids_, this->get_vals_, 7))
     {
         this->joint_msg_.header.stamp = ros::Time::now();
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < 7; i++)
         {
             this->joint_msg_.position[i] = map(static_cast<double>(get_vals_[i]), 0, 4096, -M_PI, M_PI);
-            printf("%d ", get_vals_[i]);
         }
         this->joint_pub_.publish(this->joint_msg_);
     }
@@ -77,14 +77,15 @@ void CrainX7Node::final()
 
 void CrainX7Node::jointCallback(const sensor_msgs::JointStateConstPtr &msg)
 {
-    if (callback_time_ < msg->header.stamp && 7 <= msg->position.size())
+    if (callback_time_ < msg->header.stamp && 6 <= msg->position.size())
     {
         mtx_.lock();
         callback_time_ = msg->header.stamp;
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < msg->position.size(); i++)
         {
             this->vals_[i] = map(msg->position[i], -M_PI, M_PI, 0, 4096);
         }
+        this->angle_size_ = msg->position.size();
         mtx_.unlock();
     }
 }
