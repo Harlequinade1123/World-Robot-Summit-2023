@@ -206,6 +206,33 @@ bool Dynamixel::readBulkPosition(int8_t *ids, int32_t *vals, int size)
     return true;
 }
 
+bool Dynamixel::readBulkPosAndOneVel(int8_t *ids, int32_t *vals, int size, int8_t vel_id, int32_t &vel_data)
+{
+    dynamixel::GroupBulkRead groupBulkRead(this->portHandler, this->packetHandler);
+    for (int i = 0; i < size; i++)
+    {
+        groupBulkRead.addParam(ids[i], this->ADDRESS_PRESENT_POSITION, 4);
+    }
+    groupBulkRead.addParam(vel_id, this->ADDRESS_PRESENT_VELOCITY, 4);
+    groupBulkRead.txRxPacket();
+    bool check = true;
+    for (int i = 0; i < size; i++)
+    {
+        check = check && groupBulkRead.isAvailable(ids[i], this->ADDRESS_PRESENT_POSITION, 4);
+    }
+    check = check && groupBulkRead.isAvailable(vel_id, this->ADDRESS_PRESENT_VELOCITY, 4);
+    if (!check)
+    {
+        return false;
+    }
+    for (int i = 0; i < size; i++)
+    {
+        vals[i] = groupBulkRead.getData(ids[i], this->ADDRESS_PRESENT_POSITION, 4);
+    }
+    vel_data = groupBulkRead.getData(vel_id, this->ADDRESS_PRESENT_VELOCITY, 4);
+    return true;
+}
+
 bool Dynamixel::readRPM(uint8_t id, float &data)
 {
     int32_t get_data;

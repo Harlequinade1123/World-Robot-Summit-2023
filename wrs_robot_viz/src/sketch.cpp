@@ -196,6 +196,8 @@ void Sketch::updateRobot(float dt)
                 this->arm_angles[i] = this->target_arm_angles[i];
             }
             this->end_effector_angle_ += this->end_effector_dir_ * this->end_effector_vel_ * M_PI / 30.0 * dt;
+            printf("a %f\n", this->end_effector_dir_);
+            printf("b %f\n", this->end_effector_vel_);
         }
         this->arm_mtx_.unlock();
     }

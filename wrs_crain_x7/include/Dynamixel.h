@@ -40,6 +40,8 @@ class Dynamixel
     bool readVelocity(uint8_t id, int32_t &data);
     bool readBulkVelocity(int32_t &data0, int32_t &data1, int32_t &data2, int32_t &data3);
     bool readBulkPosition(int8_t *ids, int32_t *vals, int size);
+    bool readBulkPosAndOneVel(int8_t *ids, int32_t *vals, int size, int8_t vel_id, int32_t &vel_data);
+    void writeBulkPosAndOneVel(int8_t *ids, int32_t *vals, int size, int8_t vel_id, int32_t vel);
     bool readRPM(uint8_t id, float &data);
     bool readPosition(uint8_t id, int32_t &data);
 };

@@ -71,7 +71,7 @@ class Sketch : public PSketch
     float arm_angles[6]  = { 0.0, -1.0, 0.0, -1.0, 0.0, -1.0 };
     float target_arm_angles[6]  = { 0.0, -1.0, 0.0, -1.0, 0.0, -1.0 };
     float end_effector_angle_ = 0.0;
-    float end_effector_vel_   = 50.0;
+    float end_effector_vel_   = 45.0;
     float end_effector_dir_   = 0.0;
     float angle_rpm_ = 50;
     Eigen::VectorXd q_vec;
