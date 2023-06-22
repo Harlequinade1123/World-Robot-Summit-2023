@@ -4,6 +4,7 @@
 #include <sensor_msgs/JointState.h>
 #include <nav_msgs/Odometry.h>
 #include <mutex>
+#include <random>
 #include "psketch.h"
 #include "kinematics.h"
 
@@ -15,6 +16,8 @@ class Sketch : public PSketch
     void setup();
     void draw();
     void updateRobot(float dt);
+    void drawGrid();
+    void drawItems();
     void drawRobot();
     void drawArm();
     void keyEvent(int key, int action);
@@ -76,6 +79,10 @@ class Sketch : public PSketch
     float angle_rpm_ = 50;
     Eigen::VectorXd q_vec;
     int   axis_num  = 6;
+
+    float item_xs[5] = {0,0,0,0,0};
+    float item_ys[5] = {0,0,0,0,0};
+    float item_size[5] = {50,50,50,50,50};
 
     float cranex7_x;
     float cranex7_y;

@@ -13,7 +13,7 @@ class CrainX7Node
     int8_t  ids_[8]      = { 22, 23, 24, 25, 26, 27, 28, 29 };
     int32_t vals_[8]     = { 0, 0, 0, 0, 0, 0, 0, 0 };
     int32_t get_vals_[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-    int angle_size_      = 8;
+    int angle_size_      = 6;
     int8_t end_effector_id_   = 28;
     int32_t end_effector_vel_ = 200;
     int32_t end_effector_dir_ = 0;
@@ -101,7 +101,7 @@ void CrainX7Node::jointCallback(const sensor_msgs::JointStateConstPtr &msg)
     {
         mtx_.lock();
         callback_time_ = msg->header.stamp;
-        for (int i = 0; i < msg->position.size(); i++)
+        for (int i = 0; i < angle_size_; i++)
         {
             this->vals_[i] = map(msg->position[i], -M_PI, M_PI, 0, 4096);
         }

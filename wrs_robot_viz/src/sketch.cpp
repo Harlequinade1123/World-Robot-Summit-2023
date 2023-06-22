@@ -2,6 +2,27 @@
 
 Sketch::Sketch() : PSketch()
 {
+    std::random_device rnd;
+    std::mt19937 mt_x(rnd());
+    std::uniform_int_distribution<int> randx(-850, 850);
+    std::mt19937 mt_y(rnd());
+    std::uniform_int_distribution<int> randy(-750, 750);
+    for (int item_i = 0; item_i < 5; item_i++)
+    {
+        bool x_check1, y_check1, x_check2, y_check2;
+        do
+        {
+            this->item_xs[item_i] = randx(mt_x);
+            this->item_ys[item_i] = randy(mt_y);
+            x_check1 = -350 + 50 < this->item_xs[item_i] && this->item_xs[item_i] < 180 - 50;
+            y_check1 = (-450 + 50 < this->item_ys[item_i] && this->item_ys[item_i] < -185 - 50);
+            y_check1 = y_check1 || (185 + 50 < item_ys[item_i] && this->item_ys[item_i] < 450 - 50);
+            x_check2 = 180 + 50 < this->item_xs[item_i] && this->item_xs[item_i] < 850 - 50;
+            y_check2 = -450 + 50 < this->item_ys[item_i] && this->item_ys[item_i] < 450 - 50;
+        }
+        while (!((x_check1 && y_check1) || (x_check2 && y_check2)));
+    }
+
     this->mecanum = Mecanum(50, 250, 270);
     this->craneX7 = CraneX7(this->arm_lengths, 7, 6);
     this->q_vec   = Eigen::VectorXd(this->axis_num);
@@ -34,7 +55,7 @@ Sketch::Sketch() : PSketch()
 void Sketch::wheelJointCallback(const sensor_msgs::JointStateConstPtr &msg)
 {
     this->wheel_mtx_.lock();
-    if (is_simulation || (callback_time_ < msg->header.stamp && 6 <= msg->velocity.size()))
+    if ((is_simulation || callback_time_ < msg->header.stamp) && 4 <= msg->velocity.size())
     {
         callback_time_ = msg->header.stamp;
         this->mecanum.calcForward ( msg->velocity[0],
@@ -53,10 +74,10 @@ void Sketch::wheelJointCallback(const sensor_msgs::JointStateConstPtr &msg)
 void Sketch::armJointCallback(const sensor_msgs::JointStateConstPtr &msg)
 {
     this->arm_mtx_.lock();
-    if (is_simulation || callback_time_ < msg->header.stamp)
+    if ((is_simulation || callback_time_ < msg->header.stamp) && this->axis_num <= msg->position.size())
     {
         callback_time_ = msg->header.stamp;
-        for (int i = 0; i < msg->position.size(); i++)
+        for (int i = 0; i < this->axis_num; i++)
         {
             this->target_arm_angles[i] = msg->position[i];
         }
@@ -93,8 +114,10 @@ void Sketch::parallelTask1()
         this->robot_yaw += odom_msg_.twist.twist.angular.z * delta_time;
         this->odom_msg_.pose.pose.orientation.z = sin(robot_yaw / 2);
         this->odom_msg_.pose.pose.orientation.w = cos(robot_yaw / 2);
-        this->odom_msg_.pose.pose.position.x += this->odom_msg_.twist.twist.linear.x * delta_time;
-        this->odom_msg_.pose.pose.position.y += this->odom_msg_.twist.twist.linear.y * delta_time;
+        this->odom_msg_.pose.pose.position.x += cos(this->robot_yaw) * this->odom_msg_.twist.twist.linear.x * delta_time;
+        this->odom_msg_.pose.pose.position.x -= sin(this->robot_yaw) * this->odom_msg_.twist.twist.linear.y * delta_time;
+        this->odom_msg_.pose.pose.position.y += sin(this->robot_yaw) * this->odom_msg_.twist.twist.linear.x * delta_time;
+        this->odom_msg_.pose.pose.position.y += cos(this->robot_yaw) * this->odom_msg_.twist.twist.linear.y * delta_time;
         this->wheel_odom_pub_.publish(this->odom_msg_);
         this->wheel_mtx_.unlock();
         this->arm_mtx_.lock();
@@ -139,31 +162,53 @@ void Sketch::draw()
     strokeWeight(1.5);
     stroke(100);
     strokeCap(ROUND);
-    for (int i = -8; i <= 8; i++)
-    {
-        line(-500 * 8, 500 * i, 500 * 8, 500 * i);
-        line(500 * i, -500 * 8, 500 * i, 500 * 8);
-    }
+    
     
     double dt = 1.0 / 500.0;
 
+    this->drawGrid();
+    this->drawItems();
     this->updateRobot(dt);
+    translate(-850.0 + this->robot_tread / 2 + 50, -750.0 + this->robot_depth / 2 + 50, 0.0);
     this->drawRobot();
     translate(0.0, 0.0, this->robot_height / 2);
     translate(this->robot_depth / 2.0, 0.0, 0.0);
     this->drawArm();
 }
 
-void Sketch::keyEvent(int key, int action)
+void Sketch::drawGrid()
 {
-    if (action == GLFW_PRESS)
+    for (int i = -8; i <= 8; i++)
     {
-        if (key == GLFW_KEY_SPACE)
-            //std::cout << "Space Pressed" << std::endl;
-        if (key == GLFW_KEY_RIGHT)
-            rotateCamera(M_PI / 18);
-        if (key == GLFW_KEY_LEFT)
-            rotateCamera(-M_PI / 18);
+        line(-500 * 8, 500 * i, 500 * 8, 500 * i);
+        line(500 * i, -500 * 8, 500 * i, 500 * 8);
+    }
+
+    stroke(0, 200, 0);
+    line(-850.0,  750.0,  850.0,  750.0);
+    line(-850.0, -750.0,  850.0, -750.0);
+    line( 850.0, -750.0,  850.0,  750.0);
+    line(-850.0, -750.0, -850.0,  750.0);
+    line(-350.0, -450.0, -350.0,  450.0);
+    line(-350.0,  450.0,  850.0,  450.0);
+    line(-350.0, -450.0,  850.0, -450.0);
+    stroke(100);
+
+    fill(230);
+    pushMatrix();
+    translate(-85.0, 0.0, 200.0);
+    box(530.0, 370.0, 400.0);
+    popMatrix();
+}
+
+void Sketch::drawItems()
+{
+    for (int item_i = 0; item_i < 5; item_i++)
+    {
+        pushMatrix();
+        translate(this->item_xs[item_i], this->item_ys[item_i], this->item_size[item_i] / 2);
+        box(this->item_size[item_i]);
+        popMatrix();
     }
 }
 
@@ -171,13 +216,13 @@ void Sketch::updateRobot(float dt)
 {
     if (this->wheel_mtx_.try_lock())
     {
-        this->robot_x   = odom_msg_.pose.pose.position.x * 1000;//[m] -> [mm]
-        this->robot_y   = odom_msg_.pose.pose.position.y * 1000;//[m] -> [mm]
+        this->robot_x = odom_msg_.pose.pose.position.x * 1000;//[m] -> [mm]
+        this->robot_y = odom_msg_.pose.pose.position.y * 1000;//[m] -> [mm]
         this->wheel_mtx_.unlock();
     }
     if (this->arm_mtx_.try_lock())
     {
-        for (int i = 0; i < axis_num; i++)
+        for (int i = 0; i < this->axis_num; i++)
         {
             float sign = 0.0;
             float angle_error = this->target_arm_angles[i] - this->arm_angles[i];
@@ -196,8 +241,6 @@ void Sketch::updateRobot(float dt)
                 this->arm_angles[i] = this->target_arm_angles[i];
             }
             this->end_effector_angle_ += this->end_effector_dir_ * this->end_effector_vel_ * M_PI / 30.0 * dt;
-            printf("a %f\n", this->end_effector_dir_);
-            printf("b %f\n", this->end_effector_vel_);
         }
         this->arm_mtx_.unlock();
     }
@@ -311,13 +354,22 @@ void Sketch::drawArm()
     translate(0.0, 0.0, this->end_effector_length_ / 2.0);
 }
 
-void Sketch::mouseButtonEvent(int button, int action)
+void Sketch::keyEvent(int key, int action)
 {
     if (action == GLFW_PRESS)
     {
-        //std::cout << "Button Pressed" << std::endl;
+        if (key == GLFW_KEY_SPACE)
+            //std::cout << "Space Pressed" << std::endl;
+        if (key == GLFW_KEY_RIGHT)
+            rotateCamera(M_PI / 18);
+        if (key == GLFW_KEY_LEFT)
+            rotateCamera(-M_PI / 18);
     }
 }
+
+
+void Sketch::mouseButtonEvent(int button, int action)
+{}
 
 void Sketch::cursorPosEvent(double xpos, double ypos)
 {
