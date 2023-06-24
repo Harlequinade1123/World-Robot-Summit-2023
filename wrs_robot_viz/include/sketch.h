@@ -5,6 +5,7 @@
 #include <nav_msgs/Odometry.h>
 #include <mutex>
 #include <random>
+#include <algorithm>
 #include "psketch.h"
 #include "kinematics.h"
 
@@ -18,6 +19,7 @@ class Sketch : public PSketch
     void updateRobot(float dt);
     void drawGrid();
     void drawItems();
+    void updateItems();
     void drawRobot();
     void drawArm();
     void keyEvent(int key, int action);

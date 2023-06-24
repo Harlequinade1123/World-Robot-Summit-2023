@@ -169,6 +169,7 @@ void Sketch::draw()
     double dt = 1.0 / 500.0;
 
     this->drawGrid();
+    this->updateItems();
     this->drawItems();
     this->updateRobot(dt);
     this->drawRobot();
@@ -219,6 +220,58 @@ void Sketch::drawItems()
         popMatrix();
     }
 }
+
+void Sketch::updateItems()
+{
+    float check_vecs[4][2];
+    check_vecs[0][0] = this->robot_depth * 0.5 + this->wheel_radius; check_vecs[0][1] = 0.0;
+    check_vecs[1][0] =-this->robot_depth * 0.5 - this->wheel_radius; check_vecs[1][1] = 0.0;
+    check_vecs[2][0] = 0.0;                                          check_vecs[2][1] = this->robot_tread * 0.5 + 15;
+    check_vecs[3][0] = 0.0;                                          check_vecs[3][1] =-this->robot_tread * 0.5 - 15;
+    for (int item_i = 0; item_i < 5; item_i++)
+    {
+        float x = this->item_xs[item_i] - this->robot_x;
+        float y = this->item_ys[item_i] - this->robot_y;
+        float item_vec[2];
+        item_vec[0] = x * cos(-this->robot_yaw) - y * sin(-this->robot_yaw);
+        item_vec[1] = x * sin(-this->robot_yaw) + y * cos(-this->robot_yaw);
+        if (this->robot_depth * 0.5 < std::min(abs(item_vec[0] - item_size[item_i]), std::abs(item_vec[0] + item_size[item_i])) ||
+            this->robot_tread * 0.5 < std::min(abs(item_vec[1] - item_size[item_i]), std::abs(item_vec[1] + item_size[item_i])))
+        {
+            continue;
+        }
+        int   min_index  = 0;
+        float min_length = 0;
+        for (int vec_i = 0; vec_i < 4; vec_i++)
+        {
+            float vec_length = 0;
+            if (check_vecs[vec_i][0] != 0.0)
+            {
+                vec_length = abs(item_vec[0] - check_vecs[vec_i][0]);
+            }
+            else
+            {
+                vec_length = abs(item_vec[1] - check_vecs[vec_i][1]);
+            }
+            if (vec_length < min_length)
+            {
+                min_length = vec_length;
+                min_index  = vec_i;
+            }
+        }
+        if (check_vecs[min_index][0] != 0.0)
+        {
+            item_vec[0] = check_vecs[min_index][0];
+        }
+        else
+        {
+            item_vec[1] = check_vecs[min_index][1];
+        }
+        this->item_xs[item_i] = item_vec[0] * cos(this->robot_yaw) - item_vec[1] * sin(this->robot_yaw) + this->robot_x;
+        this->item_ys[item_i] = item_vec[0] * sin(this->robot_yaw) + item_vec[1] * cos(this->robot_yaw) + this->robot_y;
+    }
+}
+
 
 void Sketch::updateRobot(float dt)
 {
