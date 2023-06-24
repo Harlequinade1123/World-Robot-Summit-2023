@@ -68,11 +68,15 @@ class Sketch : public PSketch
     float wheel_radius = 50;
     float wheel_width  = 40;
 
+    float start_point_x   = 0;
+    float start_point_y   = 0;
+    float start_point_yaw = 0.0;
+
     float arm_size = 30;
     float end_effector_length_ = 24.0;
     float arm_lengths[7] = { 41.0, 64.0, 65.0, 185.0, 121.0, 129.0, 19.0 + end_effector_length_ };
-    float arm_angles[6]  = { 0.0, -1.0, 0.0, -1.0, 0.0, -1.0 };
-    float target_arm_angles[6]  = { 0.0, -1.0, 0.0, -1.0, 0.0, -1.0 };
+    float arm_angles[6]  = { 0.0, -M_PI_2, 0.0, -M_PI_2, 0.0, 0.0 };
+    float target_arm_angles[6]  = { 0.0, -M_PI_2, 0.0, -M_PI_2, 0.0, 0.0 };
     float end_effector_angle_ = 0.0;
     float end_effector_vel_   = 45.0;
     float end_effector_dir_   = 0.0;

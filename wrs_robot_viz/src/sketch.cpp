@@ -26,14 +26,16 @@ Sketch::Sketch() : PSketch()
     this->mecanum = Mecanum(50, 250, 270);
     this->craneX7 = CraneX7(this->arm_lengths, 7, 6);
     this->q_vec   = Eigen::VectorXd(this->axis_num);
+    this->start_point_x = -850.0 + this->robot_tread / 2 + 50;
+    this->start_point_y = -750.0 + this->robot_depth / 2 + 50;
     this->callback_time_                    = ros::Time::now();
-    this->odom_msg_.pose.pose.position.x    = 0.0;
-    this->odom_msg_.pose.pose.position.y    = 0.0;
+    this->odom_msg_.pose.pose.position.x    = this->start_point_x * 0.001;
+    this->odom_msg_.pose.pose.position.y    = this->start_point_y * 0.001;
     this->odom_msg_.pose.pose.position.z    = 0.0;
     this->odom_msg_.pose.pose.orientation.x = 0.0;
     this->odom_msg_.pose.pose.orientation.y = 0.0;
-    this->odom_msg_.pose.pose.orientation.z = 0.0;
-    this->odom_msg_.pose.pose.orientation.w = 1.0;
+    this->odom_msg_.pose.pose.orientation.z = sin(this->robot_yaw / 2);
+    this->odom_msg_.pose.pose.orientation.w = cos(this->robot_yaw / 2);
     this->odom_msg_.twist.twist.linear.x    = 0.0;
     this->odom_msg_.twist.twist.linear.y    = 0.0;
     this->odom_msg_.twist.twist.linear.z    = 0.0;
@@ -129,9 +131,9 @@ void Sketch::parallelTask1()
         double x, y, z;
         this->craneX7.getXYZ(x, y, z);
         this->arm_pose_msg_.header.stamp = ros_now;
-        this->arm_pose_msg_.pose.position.x = x;
-        this->arm_pose_msg_.pose.position.y = y;
-        this->arm_pose_msg_.pose.position.z = z;
+        this->arm_pose_msg_.pose.position.x = x * 0.001;
+        this->arm_pose_msg_.pose.position.y = y * 0.001;
+        this->arm_pose_msg_.pose.position.z = z * 0.001;
         this->arm_pose_pub_.publish(this->arm_pose_msg_);
         this->arm_mtx_.unlock();
         ros_old = ros_now;
@@ -169,7 +171,6 @@ void Sketch::draw()
     this->drawGrid();
     this->drawItems();
     this->updateRobot(dt);
-    translate(-850.0 + this->robot_tread / 2 + 50, -750.0 + this->robot_depth / 2 + 50, 0.0);
     this->drawRobot();
     translate(0.0, 0.0, this->robot_height / 2);
     translate(this->robot_depth / 2.0, 0.0, 0.0);
@@ -192,6 +193,13 @@ void Sketch::drawGrid()
     line(-350.0, -450.0, -350.0,  450.0);
     line(-350.0,  450.0,  850.0,  450.0);
     line(-350.0, -450.0,  850.0, -450.0);
+    stroke(100);
+
+    stroke(200, 0, 0);
+    line(-845.0,  745.0,  845.0,  745.0);
+    line(-845.0,  505.0,  845.0,  505.0);
+    line( 845.0,  505.0,  845.0,  745.0);
+    line(-845.0,  505.0, -845.0,  745.0);
     stroke(100);
 
     fill(230);
