@@ -173,8 +173,8 @@ void Sketch::draw()
     this->drawItems();
     this->updateRobot(dt);
     this->drawRobot();
-    translate(0.0, 0.0, this->robot_height / 2);
-    translate(this->robot_depth / 2.0, 0.0, 0.0);
+    translate(0.0, 0.0, -this->robot_height / 2 - this->wheel_radius);
+    translate(this->arm_base_position_[0], this->arm_base_position_[1], this->arm_base_position_[2]);
     this->drawArm();
 }
 

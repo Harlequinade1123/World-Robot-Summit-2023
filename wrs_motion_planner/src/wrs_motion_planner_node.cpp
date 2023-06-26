@@ -86,16 +86,16 @@ MotionPlanner::MotionPlanner()
     float robot_depth  = 250;
     float robot_height = 410;
     float wheel_radius = 50;
-    arm_base_position_[0] = robot_depth * 0.5;
+    arm_base_position_[0] = 180.0;
     arm_base_position_[1] = 0;
-    arm_base_position_[2] = robot_height + wheel_radius;
+    arm_base_position_[2] = 230.0;
     float end_effector_length_ = 24.0;
     float arm_lengths[7] = { 41.0, 64.0, 65.0, 185.0, 121.0, 129.0, 19.0 + end_effector_length_ };
     craneX7 = CraneX7(arm_lengths, 7, 6);
     init_arm_angles_vec_ = Eigen::VectorXd(6);
-    init_arm_angles_vec_ << 0.0, -M_PI_2, 0.0, -M_PI_2, 0.0, 0.0 ;
+    init_arm_angles_vec_ << 0.0, -M_PI / 12, 0.0, -5 * M_PI / 6, 0.0, -M_PI / 12;
     arm_angles_vec_ = Eigen::VectorXd(6);
-    arm_angles_vec_ << 0.0, -M_PI_2, 0.0, -M_PI_2, 0.0, 0.0 ;
+    arm_angles_vec_ << 0.0, -M_PI / 12, 0.0, -5 * M_PI / 6, 0.0, -M_PI / 12;
     craneX7.calcForward(arm_angles_vec_);
     target_wheel_joint_[0] = 0.0;
     target_wheel_joint_[1] = 0.0;
@@ -240,8 +240,9 @@ void MotionPlanner::publishState()
         if (end_effector_is_on_)
         {
             end_effector_cnt_++;
-            end_effector_cnt_ /= 100;
-            if (end_effector_cnt_ < 50)
+            end_effector_cnt_ %= 50;
+            printf("%d\n", end_effector_cnt_);
+            if (end_effector_cnt_ < 25)
             {
                 arm_joint_msg.velocity[0] = 10;
             }
@@ -538,6 +539,7 @@ int main(int argc, char **argv)
     double odom[3] = {0, 0, 0};
     double pose[6] = {0, 0, 0, 0, 0, 0};
     motion_planner.init();
+
     
     pose[0] = 0.1;
     pose[1] = 0.1;
@@ -576,60 +578,100 @@ int main(int argc, char **argv)
     motion_planner.waitForGoal(20);
 
 
-    pose[0] = motion_planner.getArmPoseX();
-    pose[1] = motion_planner.getArmPoseY();
-    pose[2] = 500 - motion_planner.getArmBasePositionZ();
-    motion_planner.moveArmAbsolute(pose);
-    motion_planner.waitForGoal(10);
-
     odom[0] = motion_planner.getWheelOdomX();
     odom[1] = 0;
     odom[2] = M_PI;
     motion_planner.moveMecanumAbsolute(odom);
     motion_planner.waitForGoal(20);
 
+    odom[0] = 100;
+    odom[1] = 0;
+    odom[2] = 0;
+    motion_planner.moveMecanumRelative(odom);
+    motion_planner.waitForGoal(20);
 
-    pose[0] = 0;
-    pose[1] = 0;
-    pose[2] = -100;
-    motion_planner.moveArmRelative(pose);
-    motion_planner.waitForGoal(10);
-    
+
+
+
+
     motion_planner.endEffectorOn();
-    pose[0] = 100;
-    pose[1] = 0;
-    pose[2] = 0;
-    motion_planner.moveArmRelative(pose);
+
+    pose[0] = motion_planner.getArmPoseX() + 100;
+    pose[1] = motion_planner.getArmPoseY();
+    pose[2] = motion_planner.getArmPoseZ();
+    motion_planner.moveArmAbsolute(pose);
     motion_planner.waitForGoal(10);
+
+    pose[0] = motion_planner.getArmPoseX();
+    pose[1] = motion_planner.getArmPoseY();
+    pose[2] = - motion_planner.getArmBasePositionZ();
+    motion_planner.moveArmAbsolute(pose);
+    motion_planner.waitForGoal(10);
+
+    pose[0] = motion_planner.getArmPoseX();
+    pose[1] = motion_planner.getArmPoseY() + 100;
+    pose[2] = - motion_planner.getArmBasePositionZ();
+    motion_planner.moveArmAbsolute(pose);
+    motion_planner.waitForGoal(10);
+
+    pose[0] = motion_planner.getArmPoseX();
+    pose[1] = motion_planner.getArmPoseY() - 200;
+    pose[2] = - motion_planner.getArmBasePositionZ();
+    motion_planner.moveArmAbsolute(pose);
+    motion_planner.waitForGoal(10);
+
+    pose[0] = motion_planner.getArmPoseX();
+    pose[1] = motion_planner.getArmPoseY() + 100;
+    pose[2] = - motion_planner.getArmBasePositionZ();
+    motion_planner.moveArmAbsolute(pose);
+    motion_planner.waitForGoal(10);
+
+    pose[0] = motion_planner.getArmPoseX();
+    pose[1] = motion_planner.getArmPoseY();
+    pose[2] = 0;
+    motion_planner.moveArmAbsolute(pose);
+    motion_planner.waitForGoal(10);
+
+    pose[0] = motion_planner.getArmPoseX();
+    pose[1] = motion_planner.getArmPoseY();
+    pose[2] = 400 - motion_planner.getArmBasePositionZ();
+    motion_planner.moveArmAbsolute(pose);
+    motion_planner.waitForGoal(10);
+
+    odom[0] = -200;
+    odom[1] = 0;
+    odom[2] = 0;
+    motion_planner.moveMecanumRelative(odom);
+    motion_planner.waitForGoal(20);
+    
     pose[0] = 0;
     pose[1] = 100;
     pose[2] = 0;
     motion_planner.moveArmRelative(pose);
     motion_planner.waitForGoal(10);
+
     pose[0] = 0;
     pose[1] = -200;
     pose[2] = 0;
     motion_planner.moveArmRelative(pose);
     motion_planner.waitForGoal(10);
-    motion_planner.waitForGoal(10);
+    
     pose[0] = 0;
     pose[1] = 100;
     pose[2] = 0;
     motion_planner.moveArmRelative(pose);
     motion_planner.waitForGoal(10);
-    motion_planner.waitForGoal(10);
-    pose[0] = -100;
-    pose[1] = 0;
-    pose[2] = 0;
-    motion_planner.moveArmRelative(pose);
-    motion_planner.waitForGoal(10);
-    motion_planner.endEffectorOff();
 
     pose[0] = 0;
     pose[1] = 0;
-    pose[2] = 100;
+    pose[2] = 10;
     motion_planner.moveArmRelative(pose);
     motion_planner.waitForGoal(10);
+
+    motion_planner.endEffectorOff();
+
+
+
 
 
 
@@ -638,6 +680,11 @@ int main(int argc, char **argv)
     odom[2] = 0;
     motion_planner.moveMecanumAbsolute(odom);
     motion_planner.waitForGoal(20);
+
+    pose[0] = motion_planner.getArmPoseX() - 50;
+    pose[1] = motion_planner.getArmPoseY();
+    pose[2] = 0;
+    motion_planner.moveArmAbsolute(pose);
 
     odom[0] = motion_planner.getWheelOdomX();
     odom[1] = -500;
