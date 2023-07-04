@@ -549,9 +549,11 @@ int main(int argc, char **argv)
     pose[5] = 0;
     motion_planner.moveArmRelative(pose);
     odom[0] = motion_planner.getWheelOdomX();
-    odom[1] = motion_planner.getWheelOdomY() + 200;
+    //odom[1] = motion_planner.getWheelOdomY() + 200;
+    odom[1] = motion_planner.getWheelOdomY();
     motion_planner.moveMecanumAbsolute(odom);
     motion_planner.waitForGoal(20);
+    /**
 
     motion_planner.moveArmRelative(pose);
     odom[0] = 600;
@@ -589,6 +591,7 @@ int main(int argc, char **argv)
     odom[2] = 0;
     motion_planner.moveMecanumRelative(odom);
     motion_planner.waitForGoal(20);
+    **/
 
 
 
@@ -674,7 +677,7 @@ int main(int argc, char **argv)
 
 
 
-
+    /**
     odom[0] = motion_planner.getWheelOdomX();
     odom[1] = 0;
     odom[2] = 0;
