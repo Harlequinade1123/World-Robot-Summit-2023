@@ -41,6 +41,8 @@ class MotionPlanner
     ros::NodeHandle nh_;
     nav_msgs::Odometry wheel_odom_msg_;
     geometry_msgs::PoseStamped arm_pose_msg_;
+    double arm_pose_saved_data_[3];
+    bool arm_saved_data_is_set;
     ros::Publisher wheel_joint_pub_;
     ros::Publisher arm_joint_pub_;
     ros::Subscriber wheel_odom_sub_;
@@ -78,7 +80,7 @@ MotionPlanner::MotionPlanner()
 {
     MAX_WHEEL_VEL_     = 100;
     MAX_WHEEL_YAW_VEL_ = M_PI_2 / 3;
-    MAX_ARM_TRANSLATE_ = 2.5;
+    MAX_ARM_TRANSLATE_ = 1;
     MAX_ARM_ROTATION_  = M_PI / 100;
     mecanum = Mecanum(50, 250, 270);
     mecanum.setYawAngle(0);
@@ -89,7 +91,8 @@ MotionPlanner::MotionPlanner()
     arm_base_position_[0] = 180.0;
     arm_base_position_[1] = 0;
     arm_base_position_[2] = 230.0;
-    float end_effector_length_ = 24.0;
+    //float end_effector_length_ = 24.0;
+    float end_effector_length_ = 50.0;
     float arm_lengths[7] = { 41.0, 64.0, 65.0, 185.0, 121.0, 129.0, 19.0 + end_effector_length_ };
     craneX7 = CraneX7(arm_lengths, 7, 6);
     init_arm_angles_vec_ = Eigen::VectorXd(6);
@@ -108,8 +111,8 @@ MotionPlanner::MotionPlanner()
     target_arm_joint_[4]   = 0.0;
     target_arm_joint_[5]   =-1.0;
 
-    odom_error_[0] = 5;
-    odom_error_[1] = 5;
+    odom_error_[0] = 10;
+    odom_error_[1] = 10;
     odom_error_[2] = M_PI / 360;
     pose_error_[0] = 2;
     pose_error_[1] = 2;
@@ -123,6 +126,8 @@ MotionPlanner::MotionPlanner()
 
     wheel_is_subscribed_ = false;
     arm_is_subscribed_   = false;
+
+    arm_saved_data_is_set = false;
 }
 
 MotionPlanner::~MotionPlanner()
@@ -240,9 +245,9 @@ void MotionPlanner::publishState()
         if (end_effector_is_on_)
         {
             end_effector_cnt_++;
-            end_effector_cnt_ %= 50;
-            printf("%d\n", end_effector_cnt_);
-            if (end_effector_cnt_ < 25)
+            end_effector_cnt_ %= 150;
+            //printf("%d\n", end_effector_cnt_);
+            if (end_effector_cnt_ < 75)
             {
                 arm_joint_msg.velocity[0] = 10;
             }
@@ -286,6 +291,13 @@ void MotionPlanner::moveArmAbsolute(double *pose)
 {
     arm_mtx_.lock();
     arm_is_moving_ = true;
+    if (!arm_saved_data_is_set)
+    {
+        arm_pose_saved_data_[0] = arm_pose_msg_.pose.position.x;
+        arm_pose_saved_data_[1] = arm_pose_msg_.pose.position.y;
+        arm_pose_saved_data_[2] = arm_pose_msg_.pose.position.z;
+        arm_saved_data_is_set = true;
+    }
     for (int pose_i = 0; pose_i < 6; pose_i++)
     {
         target_pose_[pose_i] = pose[pose_i];
@@ -297,9 +309,16 @@ void MotionPlanner::moveArmRelative(double *pose)
 {
     arm_mtx_.lock();
     arm_is_moving_ = true;
-    target_pose_[0] = arm_pose_msg_.pose.position.x * 1000 + pose[0];
-    target_pose_[1] = arm_pose_msg_.pose.position.y * 1000 + pose[1];
-    target_pose_[2] = arm_pose_msg_.pose.position.z * 1000 + pose[2];
+    if (!arm_saved_data_is_set)
+    {
+        arm_pose_saved_data_[0] = arm_pose_msg_.pose.position.x;
+        arm_pose_saved_data_[1] = arm_pose_msg_.pose.position.y;
+        arm_pose_saved_data_[2] = arm_pose_msg_.pose.position.z;
+        arm_saved_data_is_set = true;
+    }
+    target_pose_[0] = arm_pose_saved_data_[0] * 1000 + pose[0];
+    target_pose_[1] = arm_pose_saved_data_[1] * 1000 + pose[1];
+    target_pose_[2] = arm_pose_saved_data_[2] * 1000 + pose[2];
     //TODO クォータニオン対応
     target_pose_[3] = pose[3];
     target_pose_[4] = pose[4];
@@ -333,9 +352,12 @@ void MotionPlanner::waitForGoal(long timeout_sec)
         if (arm_is_moving_)
         {
             arm_mtx_.lock();
-            if (abs(target_pose_[0] - arm_pose_msg_.pose.position.x * 1000) > pose_error_[0] ||
-                abs(target_pose_[1] - arm_pose_msg_.pose.position.y * 1000) > pose_error_[1] ||
-                abs(target_pose_[2] - arm_pose_msg_.pose.position.z * 1000) > pose_error_[2])
+            std::cout << "x: " << abs(target_pose_[0] - arm_pose_saved_data_[0] * 1000) << std::endl;
+            std::cout << "y: " << abs(target_pose_[1] - arm_pose_saved_data_[1] * 1000) << std::endl;
+            std::cout << "z: " << abs(target_pose_[2] - arm_pose_saved_data_[2] * 1000) << std::endl;
+            if (abs(target_pose_[0] - arm_pose_saved_data_[0] * 1000) > pose_error_[0] ||
+                abs(target_pose_[1] - arm_pose_saved_data_[1] * 1000) > pose_error_[1] ||
+                abs(target_pose_[2] - arm_pose_saved_data_[2] * 1000) > pose_error_[2])
             {
                 is_goal = false;
             }
@@ -408,35 +430,38 @@ void MotionPlanner::targetOdomToJoint()
 void MotionPlanner::targetPoseToJoint()
 {
     double input_pose[6];
-    double error_x = target_pose_[0] - arm_pose_msg_.pose.position.x * 1000;
-    double error_y = target_pose_[1] - arm_pose_msg_.pose.position.y * 1000;
-    double error_z = target_pose_[2] - arm_pose_msg_.pose.position.z * 1000;
+    double error_x = target_pose_[0] - arm_pose_saved_data_[0] * 1000;
+    double error_y = target_pose_[1] - arm_pose_saved_data_[1] * 1000;
+    double error_z = target_pose_[2] - arm_pose_saved_data_[2] * 1000;
 
     
     if (0 < error_x)
     {
-        input_pose[0] = arm_pose_msg_.pose.position.x * 1000 + MAX_ARM_TRANSLATE_;
+        input_pose[0] = arm_pose_saved_data_[0] * 1000 + MAX_ARM_TRANSLATE_;
     }
     else
     {
-        input_pose[0] = arm_pose_msg_.pose.position.x * 1000 - MAX_ARM_TRANSLATE_;
+        input_pose[0] = arm_pose_saved_data_[0] * 1000 - MAX_ARM_TRANSLATE_;
     }
     if (0 < error_y)
     {
-        input_pose[1] = arm_pose_msg_.pose.position.y * 1000 + MAX_ARM_TRANSLATE_;
+        input_pose[1] = arm_pose_saved_data_[1] * 1000 + MAX_ARM_TRANSLATE_;
     }
     else
     {
-        input_pose[1] = arm_pose_msg_.pose.position.y * 1000 - MAX_ARM_TRANSLATE_;
+        input_pose[1] = arm_pose_saved_data_[1] * 1000 - MAX_ARM_TRANSLATE_;
     }
     if (0 < error_z)
     {
-        input_pose[2] = arm_pose_msg_.pose.position.z * 1000 + MAX_ARM_TRANSLATE_;
+        input_pose[2] = arm_pose_saved_data_[2] * 1000 + MAX_ARM_TRANSLATE_;
     }
     else
     {
-        input_pose[2] = arm_pose_msg_.pose.position.z * 1000 - MAX_ARM_TRANSLATE_;
+        input_pose[2] = arm_pose_saved_data_[2] * 1000 - MAX_ARM_TRANSLATE_;
     }
+    arm_pose_saved_data_[0] = input_pose[0] / 1000;
+    arm_pose_saved_data_[1] = input_pose[1] / 1000;
+    arm_pose_saved_data_[2] = input_pose[2] / 1000;
 
     for (int pose_i = 0; pose_i < 3; pose_i++)
     {
