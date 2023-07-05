@@ -48,7 +48,7 @@ Sketch::Sketch() : PSketch()
 
     this->wheel_odom_pub_  = this->nh_.advertise<nav_msgs::Odometry>("/wrs/wheel/odom", 10);
     this->arm_pose_pub_    = this->nh_.advertise<geometry_msgs::PoseStamped>("/wrs/arm/pose", 10);
-    this->wheel_joint_sub_ = this->nh_.subscribe("/wrs/wheel/read", 10, &Sketch::wheelJointCallback, this);
+    this->wheel_joint_sub_ = this->nh_.subscribe("/wrs/wheel/write", 10, &Sketch::wheelJointCallback, this);
     this->arm_joint_sub_   = this->nh_.subscribe("/wrs/arm/write", 10, &Sketch::armJointCallback, this);
 
     size(800, 800, P3D);

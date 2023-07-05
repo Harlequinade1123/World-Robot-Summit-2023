@@ -74,9 +74,9 @@ class Sketch : public PSketch
     float start_point_y   = 0;
     float start_point_yaw = 0.0;
 
-    float arm_base_position_[3] = {180.0, 0.0, 230.0 };
+    float arm_base_position_[3] = {180.0, 0.0, 320.0 };
     float arm_size = 30;
-    float end_effector_length_ = 50.0;
+    float end_effector_length_ = 150.0;
     float arm_lengths[7] = { 41.0, 64.0, 65.0, 185.0, 121.0, 129.0, 19.0 + end_effector_length_ };
     float arm_angles[6]  = { 0.0, -M_PI_2, 0.0, -M_PI_2, 0.0, 0.0 };
     float target_arm_angles[6]  = { 0.0, -M_PI / 12, 0.0, -5 * M_PI / 6, 0.0, -M_PI / 12 };

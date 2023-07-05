@@ -36,6 +36,13 @@ class MotionPlanner
     double getArmBasePositionZ();
     void endEffectorOn();
     void endEffectorOff();
+    void setTranslate(double translate, double max_trans)
+    {
+        MAX_ARM_TRANSLATE_ = translate;
+        pose_error_[0] = max_trans;
+        pose_error_[1] = max_trans;
+        pose_error_[2] = max_trans;
+    }
 
     private:
     ros::NodeHandle nh_;
@@ -90,9 +97,9 @@ MotionPlanner::MotionPlanner()
     float wheel_radius = 50;
     arm_base_position_[0] = 180.0;
     arm_base_position_[1] = 0;
-    arm_base_position_[2] = 230.0;
+    arm_base_position_[2] = 320.0;
     //float end_effector_length_ = 24.0;
-    float end_effector_length_ = 50.0;
+    float end_effector_length_ = 150.0;
     float arm_lengths[7] = { 41.0, 64.0, 65.0, 185.0, 121.0, 129.0, 19.0 + end_effector_length_ };
     craneX7 = CraneX7(arm_lengths, 7, 6);
     init_arm_angles_vec_ = Eigen::VectorXd(6);
@@ -352,9 +359,9 @@ void MotionPlanner::waitForGoal(long timeout_sec)
         if (arm_is_moving_)
         {
             arm_mtx_.lock();
-            std::cout << "x: " << abs(target_pose_[0] - arm_pose_saved_data_[0] * 1000) << std::endl;
-            std::cout << "y: " << abs(target_pose_[1] - arm_pose_saved_data_[1] * 1000) << std::endl;
-            std::cout << "z: " << abs(target_pose_[2] - arm_pose_saved_data_[2] * 1000) << std::endl;
+            //std::cout << "x: " << abs(target_pose_[0] - arm_pose_saved_data_[0] * 1000) << std::endl;
+            //std::cout << "y: " << abs(target_pose_[1] - arm_pose_saved_data_[1] * 1000) << std::endl;
+            //std::cout << "z: " << abs(target_pose_[2] - arm_pose_saved_data_[2] * 1000) << std::endl;
             if (abs(target_pose_[0] - arm_pose_saved_data_[0] * 1000) > pose_error_[0] ||
                 abs(target_pose_[1] - arm_pose_saved_data_[1] * 1000) > pose_error_[1] ||
                 abs(target_pose_[2] - arm_pose_saved_data_[2] * 1000) > pose_error_[2])
@@ -398,9 +405,13 @@ void MotionPlanner::targetOdomToJoint()
     double error_x   = target_odom_[0] - wheel_odom_msg_.pose.pose.position.x * 1000;
     double error_y   = target_odom_[1] - wheel_odom_msg_.pose.pose.position.y * 1000;
     double error_yaw = target_odom_[2] - msg_angle;
-    target_vel_x   = MAX_WHEEL_VEL_ * error_x / sqrt(error_x * error_x + error_y * error_y);
-    target_vel_y   = MAX_WHEEL_VEL_ * error_y / sqrt(error_x * error_x + error_y * error_y);
-    target_vel_yaw = MAX_WHEEL_YAW_VEL_;
+    double vel_gain = 100;
+    double yaw_gain = 100;
+    double wheel_vel = std::min(MAX_WHEEL_VEL_, MAX_WHEEL_VEL_ * (error_x * error_x + error_y * error_y));
+    double max_wheel_yaw_vel = std::min(MAX_WHEEL_YAW_VEL_, MAX_WHEEL_YAW_VEL_ * error_yaw * error_yaw);
+    target_vel_x   = wheel_vel * error_x / sqrt(error_x * error_x + error_y * error_y);
+    target_vel_y   = wheel_vel * error_y / sqrt(error_x * error_x + error_y * error_y);
+    target_vel_yaw = max_wheel_yaw_vel;
     if (error_yaw < 0)
     {
         target_vel_yaw *= -1;
@@ -578,7 +589,7 @@ int main(int argc, char **argv)
     odom[1] = motion_planner.getWheelOdomY();
     motion_planner.moveMecanumAbsolute(odom);
     motion_planner.waitForGoal(20);
-    /**
+    
 
     motion_planner.moveArmRelative(pose);
     odom[0] = 600;
@@ -616,7 +627,6 @@ int main(int argc, char **argv)
     odom[2] = 0;
     motion_planner.moveMecanumRelative(odom);
     motion_planner.waitForGoal(20);
-    **/
 
 
 
@@ -708,7 +718,7 @@ int main(int argc, char **argv)
 
 
 
-    /**
+    
     odom[0] = motion_planner.getWheelOdomX();
     odom[1] = 0;
     odom[2] = 0;
