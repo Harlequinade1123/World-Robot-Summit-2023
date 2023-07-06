@@ -758,8 +758,17 @@ int main(int argc, char **argv)
 
 
 
+    odom[0] = motion_planner.getWheelOdomX();
+    odom[1] = 0;
+    odom[2] = M_PI_2;
+    motion_planner.moveMecanumAbsolute(odom);
+    motion_planner.waitForGoal(20);
 
-    
+    pose[0] = 0.1;
+    pose[1] = 0.1;
+    pose[2] = 0.1;
+    motion_planner.moveArmRelative(pose);
+    motion_planner.moveMecanumAbsolute(odom);
     odom[0] = motion_planner.getWheelOdomX();
     odom[1] = 0;
     odom[2] = 0;
