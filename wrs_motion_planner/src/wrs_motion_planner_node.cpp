@@ -208,11 +208,23 @@ void MotionPlanner::publishInitState()
     arm_joint_msg.velocity[0] = 0;
     if (set_init)
     {
-        for (int joint_i = 0; joint_i < 6; joint_i++)
-        {
-            arm_joint_msg.position[joint_i] = 0;
-            arm_angles_saved_data_[joint_i] = 0;
-        }
+        arm_joint_msg.position[0] = M_PI;
+        arm_joint_msg.position[1] = 0.0;
+        arm_joint_msg.position[2] = 0.0;
+        arm_joint_msg.position[3] = -M_PI_2;
+        arm_joint_msg.position[4] = 0.0;
+        arm_joint_msg.position[5] = -M_PI_2;
+        arm_angles_saved_data_[0] = M_PI;
+        arm_angles_saved_data_[1] = 0.0;
+        arm_angles_saved_data_[2] = 0.0;
+        arm_angles_saved_data_[3] = -M_PI_2;
+        arm_angles_saved_data_[4] = 0.0;
+        arm_angles_saved_data_[5] = -M_PI_2;
+        //for (int joint_i = 0; joint_i < 6; joint_i++)
+        //{
+        //    arm_joint_msg.position[joint_i] = 0;
+        //    arm_angles_saved_data_[joint_i] = 0;
+        //}
     }
     arm_joint_pub_.publish(arm_joint_msg);
     ROS_INFO("2...\n");
@@ -391,11 +403,11 @@ void MotionPlanner::moveArmInitPos1()
     arm_mtx_.lock();
     arm_is_moving_angle_ = true;
     target_angle_[0] = 0.0;
-    target_angle_[1] = -M_PI / 12;
+    target_angle_[1] = 0.0;
     target_angle_[2] = 0.0;
-    target_angle_[3] = -5 * M_PI / 6;
+    target_angle_[3] = -M_PI_2;
     target_angle_[4] = 0.0;
-    target_angle_[5] = -M_PI / 12;
+    target_angle_[5] = -M_PI_2;
     arm_mtx_.unlock();
 }
 
@@ -403,10 +415,12 @@ void MotionPlanner::moveArmInitPos2()
 {
     arm_mtx_.lock();
     arm_is_moving_angle_ = true;
-    for (int i = 0; i < 6; i++)
-    {
-        target_angle_[i] = 0;
-    }
+    target_angle_[0] = M_PI;
+    target_angle_[1] = 0.0;
+    target_angle_[2] = 0.0;
+    target_angle_[3] = -M_PI_2;
+    target_angle_[4] = 0.0;
+    target_angle_[5] = -M_PI_2;
     arm_mtx_.unlock();
 }
 
@@ -713,27 +727,30 @@ int main(int argc, char **argv)
     pose[4] = -M_PI;
     pose[5] = 0;
     //motion_planner.moveArmRelative(pose);
-    //odom[0] = motion_planner.getWheelOdomX();
+    odom[0] = motion_planner.getWheelOdomX();
     ////odom[1] = motion_planner.getWheelOdomY() + 200;
-    //odom[1] = motion_planner.getWheelOdomY();
+    odom[1] = motion_planner.getWheelOdomY();
     motion_planner.moveMecanumAbsolute(odom);
     motion_planner.waitForGoal(20);
 
+    /**
+
     //トイレ横まで平行移動
-    motion_planner.moveArmRelative(pose);
+    motion_planner.moveArmInitPos2();
     odom[0] = motion_planner.getWheelOdomX();
     odom[1] = motion_planner.getWheelOdomY() + 100;
     motion_planner.moveMecanumAbsolute(odom);
     motion_planner.waitForGoal(20);
 
     //フィールド右上まで前進
-    motion_planner.moveArmRelative(pose);
+    motion_planner.moveArmInitPos2();
     odom[0] = 600;
     odom[1] = motion_planner.getWheelOdomY();
     motion_planner.moveMecanumAbsolute(odom);
     motion_planner.waitForGoal(20);
 
     //90度旋回
+    motion_planner.moveArmInitPos2();
     odom[0] = motion_planner.getWheelOdomX();
     odom[1] = motion_planner.getWheelOdomY();
     odom[2] = M_PI_2;
@@ -802,6 +819,7 @@ int main(int argc, char **argv)
     odom[2] = M_PI;
     motion_planner.moveMecanumAbsolute(odom);
     motion_planner.waitForGoal(20);
+    **/
 
 
     motion_planner.moveArmInitPos1();
