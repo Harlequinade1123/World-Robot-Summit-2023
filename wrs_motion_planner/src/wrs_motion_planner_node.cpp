@@ -705,19 +705,19 @@ int main(int argc, char **argv)
     motion_planner.init();
 
     // 初期姿勢
-    //pose[0] = 0.1;
-    //pose[1] = 0.1;
-    //pose[2] = 50.1;
-    //pose[3] = 0;
-    //pose[4] = -M_PI;
-    //pose[5] = 0;
+    motion_planner.moveArmInitPos2();
+    pose[0] = 0.1;
+    pose[1] = 0.1;
+    pose[2] = 50.1;
+    pose[3] = 0;
+    pose[4] = -M_PI;
+    pose[5] = 0;
     //motion_planner.moveArmRelative(pose);
     //odom[0] = motion_planner.getWheelOdomX();
     ////odom[1] = motion_planner.getWheelOdomY() + 200;
     //odom[1] = motion_planner.getWheelOdomY();
-    //motion_planner.moveMecanumAbsolute(odom);
-    //motion_planner.waitForGoal(20);
-    /**
+    motion_planner.moveMecanumAbsolute(odom);
+    motion_planner.waitForGoal(20);
 
     //トイレ横まで平行移動
     motion_planner.moveArmRelative(pose);
@@ -802,8 +802,6 @@ int main(int argc, char **argv)
     odom[2] = M_PI;
     motion_planner.moveMecanumAbsolute(odom);
     motion_planner.waitForGoal(20);
-    **/
-
 
 
     motion_planner.moveArmInitPos1();
