@@ -811,7 +811,7 @@ int main(int argc, char **argv)
     motion_planner.moveArmInvPos();
     motion_planner.waitForGoal(20);
 
-    usleep(2000000);
+    usleep(1000000);
 
     pose[0] = 0.1;
     pose[1] = 0.1;
@@ -899,8 +899,11 @@ int main(int argc, char **argv)
 
     motion_planner.endEffectorOff();
 
+    usleep(1000000);
+
     motion_planner.moveArmInitPos1();
     motion_planner.waitForGoal(10);
+    usleep(500000);
     motion_planner.moveArmInitPos2();
     motion_planner.waitForGoal(10);
     /**
