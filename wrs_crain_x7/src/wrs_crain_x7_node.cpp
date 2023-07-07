@@ -12,6 +12,7 @@ class CrainX7Node
     Dynamixel dxl_;
     int8_t  ids_[8]      = { 22, 23, 24, 25, 26, 27, 28, 29 };
     int32_t vals_[8]     = { 0, 0, 0, 0, 0, 0, 0, 0 };
+    int32_t init_vals_[6]= { 2048, 2048, 2048, 2048, 2048, 2048, };
     int32_t get_vals_[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
     int angle_size_      = 6;
     int8_t end_effector_id_   = 28;
@@ -47,6 +48,34 @@ void CrainX7Node::init()
     this->dxl_.torqueOn(28);
     //this->dxl_.torqueOn(29);
     this->dxl_.readBulkPosition(this->ids_, this->vals_, this->angle_size_);
+    bool check = true;
+    while (check)
+    {
+        this->dxl_.readBulkPosition(this->ids_, this->vals_, this->angle_size_);
+        double error = 0;
+        check = false;
+        for (int i = 0; i < 6; i++)
+        {
+            error = this->init_vals_[i] - this->vals_[i];
+            if (error < 0)
+            {
+                this->vals_[i] + M_PI / 36;
+            }
+            else
+            {
+                this->vals_[i] - M_PI / 36;
+            }
+            if (abs(error) < M_PI / 18)
+            {
+                this->vals_[i] - this->init_vals_[i];
+            }
+            else
+            {
+                check = true;
+            }
+        }
+        this->dxl_.writeBulkPosAndOneVel(this->ids_, this->vals_, this->angle_size_, this->end_effector_id_, 0);
+    }
 }
 
 void CrainX7Node::write()
