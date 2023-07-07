@@ -102,7 +102,7 @@ MotionPlanner::MotionPlanner()
     MAX_WHEEL_VEL_     = 100;
     MAX_WHEEL_YAW_VEL_ = M_PI_2 / 2.5;
     MAX_ARM_TRANSLATE_ = 1;
-    MAX_ARM_ANGLE_ = M_PI / 36;
+    MAX_ARM_ANGLE_ = M_PI / 72;
     MAX_ARM_ROTATION_  = M_PI / 100;
     mecanum = Mecanum(50, 250, 270);
     mecanum.setYawAngle(0);
@@ -217,10 +217,10 @@ void MotionPlanner::publishInitState()
     arm_joint_pub_.publish(arm_joint_msg);
     ROS_INFO("2...\n");
     arm_joint_pub_.publish(arm_joint_msg);
-    usleep(1000000);
+    usleep(2000000);
     ROS_INFO("1...\n");
     arm_joint_pub_.publish(arm_joint_msg);
-    usleep(1000000);
+    usleep(2000000);
 }
 
 void MotionPlanner::wheelOdomCallback(const nav_msgs::OdometryConstPtr &msg)
@@ -806,12 +806,13 @@ int main(int argc, char **argv)
 
 
 
-
-
+    motion_planner.moveArmInitPos1();
+    motion_planner.waitForGoal(20);
+    usleep(2000000);
     motion_planner.moveArmInvPos();
     motion_planner.waitForGoal(20);
 
-    usleep(1000000);
+    usleep(2000000);
 
     pose[0] = 0.1;
     pose[1] = 0.1;
@@ -822,16 +823,22 @@ int main(int argc, char **argv)
     motion_planner.moveArmRelative(pose);
     motion_planner.waitForGoal(20);
 
+    odom[0] = 50;
+    odom[1] = 0;
+    odom[2] = 0;
+    motion_planner.moveMecanumRelative(odom);
+    motion_planner.waitForGoal(20);
+
     
     motion_planner.endEffectorOn();
 
     pose[0] = motion_planner.getArmPoseX() + 200;
     pose[1] = motion_planner.getArmPoseY();
-    pose[2] = 400 - motion_planner.getArmBasePositionZ();
+    pose[2] = 430 - motion_planner.getArmBasePositionZ();
     motion_planner.moveArmAbsolute(pose);
     motion_planner.waitForGoal(10);
 
-    odom[0] = -50;
+    odom[0] = 50;
     odom[1] = 0;
     odom[2] = 0;
     motion_planner.moveMecanumRelative(odom);
@@ -860,6 +867,12 @@ int main(int argc, char **argv)
     pose[2] = motion_planner.getArmPoseZ();
     motion_planner.moveArmAbsolute(pose);
     motion_planner.waitForGoal(10);
+    
+    odom[0] = -50;
+    odom[1] = 0;
+    odom[2] = 0;
+    motion_planner.moveMecanumRelative(odom);
+    motion_planner.waitForGoal(20);
 
     pose[0] = motion_planner.getArmPoseX() - 50;
     pose[1] = motion_planner.getArmPoseY();
