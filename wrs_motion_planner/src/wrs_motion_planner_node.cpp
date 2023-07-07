@@ -118,9 +118,11 @@ MotionPlanner::MotionPlanner()
     float arm_lengths[7] = { 41.0, 64.0, 65.0, 185.0, 121.0, 129.0, 19.0 + end_effector_length_ };
     craneX7 = CraneX7(arm_lengths, 7, 6);
     init_arm_angles_vec_ = Eigen::VectorXd(6);
-    init_arm_angles_vec_ << 0.0, -M_PI / 12, 0.0, -5 * M_PI / 6, 0.0, -M_PI / 12;
+    //init_arm_angles_vec_ << 0.0, -M_PI / 12, 0.0, -5 * M_PI / 6, 0.0, -M_PI / 12;
+    init_arm_angles_vec_ << 0.0, 0.0, 0.0, -M_PI_2 / 1.2, 0.0, -M_PI_2;
     init_arm_angles_vec_inv_ = Eigen::VectorXd(6);
-    init_arm_angles_vec_inv_ << 0.0, -M_PI / 12, 0.0, -5 * M_PI / 6, 0.0, -M_PI / 12;
+    //init_arm_angles_vec_inv_ << 0.0, -M_PI / 12, 0.0, -5 * M_PI / 6, 0.0, -M_PI / 12; 
+    init_arm_angles_vec_inv_ << 0.0, 0.0, 0.0, -M_PI_2 / 1.2, 0.0, -M_PI_2;
     arm_angles_vec_ = Eigen::VectorXd(6);
     arm_angles_vec_ << 0.0, -M_PI / 12, 0.0, -5 * M_PI / 6, 0.0, -M_PI / 12;
     craneX7.calcForward(arm_angles_vec_);
@@ -208,16 +210,16 @@ void MotionPlanner::publishInitState()
     arm_joint_msg.velocity[0] = 0;
     if (set_init)
     {
-        arm_joint_msg.position[0] = M_PI;
+        arm_joint_msg.position[0] = M_PI / 1.1;
         arm_joint_msg.position[1] = 0.0;
         arm_joint_msg.position[2] = 0.0;
-        arm_joint_msg.position[3] = -M_PI_2;
+        arm_joint_msg.position[3] = -M_PI_2 / 1.2;
         arm_joint_msg.position[4] = 0.0;
         arm_joint_msg.position[5] = -M_PI_2;
-        arm_angles_saved_data_[0] = M_PI;
+        arm_angles_saved_data_[0] = M_PI / 1.1;
         arm_angles_saved_data_[1] = 0.0;
         arm_angles_saved_data_[2] = 0.0;
-        arm_angles_saved_data_[3] = -M_PI_2;
+        arm_angles_saved_data_[3] = -M_PI_2 / 1.2;
         arm_angles_saved_data_[4] = 0.0;
         arm_angles_saved_data_[5] = -M_PI_2;
         //for (int joint_i = 0; joint_i < 6; joint_i++)
@@ -405,7 +407,7 @@ void MotionPlanner::moveArmInitPos1()
     target_angle_[0] = 0.0;
     target_angle_[1] = 0.0;
     target_angle_[2] = 0.0;
-    target_angle_[3] = -M_PI_2;
+    target_angle_[3] = -M_PI_2 / 1.2;
     target_angle_[4] = 0.0;
     target_angle_[5] = -M_PI_2;
     arm_mtx_.unlock();
@@ -415,10 +417,10 @@ void MotionPlanner::moveArmInitPos2()
 {
     arm_mtx_.lock();
     arm_is_moving_angle_ = true;
-    target_angle_[0] = M_PI;
+    target_angle_[0] = M_PI / 1.1;
     target_angle_[1] = 0.0;
     target_angle_[2] = 0.0;
-    target_angle_[3] = -M_PI_2;
+    target_angle_[3] = -M_PI_2 / 1.2;
     target_angle_[4] = 0.0;
     target_angle_[5] = -M_PI_2;
     arm_mtx_.unlock();
@@ -848,7 +850,7 @@ int main(int argc, char **argv)
     
     motion_planner.endEffectorOn();
 
-    pose[0] = motion_planner.getArmPoseX() + 200;
+    pose[0] = motion_planner.getArmPoseX() + 50;
     pose[1] = motion_planner.getArmPoseY();
     pose[2] = 430 - motion_planner.getArmBasePositionZ();
     motion_planner.moveArmAbsolute(pose);
