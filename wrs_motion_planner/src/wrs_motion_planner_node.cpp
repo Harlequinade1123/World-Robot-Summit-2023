@@ -43,7 +43,7 @@ MotionPlanner::MotionPlanner()
     odom_error_[0] = 5;
     odom_error_[1] = 5;
     //odom_error_[2] = M_PI / 72;
-    odom_error_[2] = M_PI / 108;
+    odom_error_[2] = M_PI / 72;
     pose_error_[0] = 2;
     pose_error_[1] = 2;
     pose_error_[2] = 2;
@@ -117,13 +117,13 @@ void MotionPlanner::publishInitState()
         arm_joint_msg.position[0] = M_PI_2;
         arm_joint_msg.position[1] = 0.0;
         arm_joint_msg.position[2] = M_PI_2;
-        arm_joint_msg.position[3] = -M_PI_2 / 1.2;
+        arm_joint_msg.position[3] = -M_PI_2 / 2;
         arm_joint_msg.position[4] = 0.0;
         arm_joint_msg.position[5] = -M_PI_2;
         arm_angles_saved_data_[0] = M_PI_2;
         arm_angles_saved_data_[1] = 0.0;
         arm_angles_saved_data_[2] = M_PI_2;
-        arm_angles_saved_data_[3] = -M_PI_2 / 1.2;
+        arm_angles_saved_data_[3] = -M_PI_2 / 2;
         arm_angles_saved_data_[4] = 0.0;
         arm_angles_saved_data_[5] = -M_PI_2;
         //for (int joint_i = 0; joint_i < 6; joint_i++)
@@ -311,7 +311,7 @@ void MotionPlanner::moveArmInitPos1()
     target_angle_[0] = 0.0;
     target_angle_[1] = 0.0;
     target_angle_[2] = 0.0;
-    target_angle_[3] = -M_PI_2 / 1.2;
+    target_angle_[3] = -M_PI_2 / 2;
     target_angle_[4] = 0.0;
     target_angle_[5] = -M_PI_2;
     arm_mtx_.unlock();
@@ -324,7 +324,7 @@ void MotionPlanner::moveArmInitPos2()
     target_angle_[0] = M_PI_2;
     target_angle_[1] = 0.0;
     target_angle_[2] = M_PI_2;
-    target_angle_[3] = -M_PI_2 / 1.2;
+    target_angle_[3] = -M_PI_2 / 2;
     target_angle_[4] = 0.0;
     target_angle_[5] = -M_PI_2;
     arm_mtx_.unlock();
@@ -449,7 +449,7 @@ void MotionPlanner::targetOdomToJoint()
     double dif_yaw_gain = -0.1;
     double int_yaw_gain = 0.001;
     double wheel_vel = MAX_WHEEL_VEL_;//std::min(MAX_WHEEL_VEL_, MAX_WHEEL_VEL_ * vel_gain * (error_x * error_x + error_y * error_y));
-    double max_wheel_yaw_vel = std::min(MAX_WHEEL_YAW_VEL_, abs(yaw_gain * error_yaw + dif_yaw_gain * dif_error_yaw + int_yaw_gain * int_error_yaw));
+    double max_wheel_yaw_vel = MAX_WHEEL_YAW_VEL_;//std::min(MAX_WHEEL_YAW_VEL_, abs(yaw_gain * error_yaw + dif_yaw_gain * dif_error_yaw + int_yaw_gain * int_error_yaw));
     //printf("%lf %lf\n", MAX_WHEEL_YAW_VEL_, abs(yaw_gain * error_yaw + dif_yaw_gain * dif_error_yaw + int_yaw_gain * int_error_yaw));
     target_vel_x   = wheel_vel * error_x / sqrt(error_x * error_x + error_y * error_y);
     target_vel_y   = wheel_vel * error_y / sqrt(error_x * error_x + error_y * error_y);

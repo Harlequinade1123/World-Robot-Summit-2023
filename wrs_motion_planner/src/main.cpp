@@ -9,9 +9,9 @@ int main(int argc, char **argv)
 {
     ros::init(argc, argv, "wrs_motion_planner_node");
     //motion1();
-    //motion2();
+    motion2();
     //motion3();
-    cleaningMotion();
+    //cleaningMotion();
 }
 
 void motion1()
@@ -289,14 +289,6 @@ void motion2()
     motion_planner.moveMecanumAbsolute(odom);
     motion_planner.waitForGoal(20);
 
-
-    //トイレ横まで平行移動
-    odom[0] = motion_planner.getWheelOdomX();
-    odom[1] = motion_planner.getWheelOdomY() + 100;
-    motion_planner.moveMecanumAbsolute(odom);
-    motion_planner.waitForGoal(20);
-
-
     //フィールド右上まで前進
     odom[0] = 600;
     odom[1] = motion_planner.getWheelOdomY();
@@ -319,7 +311,7 @@ void motion2()
 
     //フィールド中央（トイレ前）まで移動
     odom[0] = motion_planner.getWheelOdomX();
-    odom[1] = 0;
+    odom[1] = 50;
     odom[2] = M_PI_2;
     motion_planner.moveMecanumAbsolute(odom);
     motion_planner.waitForGoal(20);
@@ -359,7 +351,7 @@ void motion2()
     
     motion_planner.endEffectorOn();
 
-    pose[0] = motion_planner.getArmPoseX() + 50;
+    pose[0] = motion_planner.getArmPoseX() + 100;
     pose[1] = motion_planner.getArmPoseY();
     pose[2] = 430 - motion_planner.getArmBasePositionZ();
     motion_planner.moveArmAbsolute(pose);
@@ -395,7 +387,7 @@ void motion2()
     motion_planner.moveMecanumRelative(odom);
     motion_planner.waitForGoal(20);
 
-    pose[0] = motion_planner.getArmPoseX() - 50;
+    pose[0] = motion_planner.getArmPoseX() + 80;
     pose[1] = motion_planner.getArmPoseY();
     pose[2] = - motion_planner.getArmBasePositionZ() + 20;
     motion_planner.moveArmAbsolute(pose);
@@ -456,7 +448,7 @@ void motion2()
     motion_planner.waitForGoal(20);
 
     odom[0] = -600;
-    odom[1] = -570;
+    odom[1] = -470;
     odom[2] = 0;
     motion_planner.moveMecanumAbsolute(odom);
     motion_planner.waitForGoal(20);

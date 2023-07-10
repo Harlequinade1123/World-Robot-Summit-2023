@@ -26,8 +26,8 @@ Sketch::Sketch() : PSketch()
     this->mecanum = Mecanum(50, 250, 270);
     this->craneX7 = CraneX7(this->arm_lengths, 7, 6);
     this->q_vec   = Eigen::VectorXd(this->axis_num);
-    this->start_point_x = -850.0 + 340.0 / 2 + 50;//-850.0 + this->robot_tread / 2 + 50;
-    this->start_point_y = -750.0 + 340.0 / 2 + 50;//-750.0 + this->robot_depth / 2 + 50;
+    this->start_point_x = -850.0 + 200;//-850.0 + this->robot_tread / 2 + 50;
+    this->start_point_y = -750.0 + 400;//-750.0 + this->robot_depth / 2 + 50;
     this->callback_time_                    = ros::Time::now();
     this->odom_msg_.pose.pose.position.x    = this->start_point_x * 0.001;
     this->odom_msg_.pose.pose.position.y    = this->start_point_y * 0.001;
@@ -48,7 +48,7 @@ Sketch::Sketch() : PSketch()
 
     this->wheel_odom_pub_  = this->nh_.advertise<nav_msgs::Odometry>("/wrs/wheel/odom", 10);
     this->arm_pose_pub_    = this->nh_.advertise<geometry_msgs::PoseStamped>("/wrs/arm/pose", 10);
-    this->wheel_joint_sub_ = this->nh_.subscribe("/wrs/wheel/write", 10, &Sketch::wheelJointCallback, this);
+    this->wheel_joint_sub_ = this->nh_.subscribe("/wrs/wheel/read", 10, &Sketch::wheelJointCallback, this);
     this->arm_joint_sub_   = this->nh_.subscribe("/wrs/arm/write", 10, &Sketch::armJointCallback, this);
 
     size(800, 800, P3D);
