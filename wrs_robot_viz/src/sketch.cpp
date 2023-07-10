@@ -26,8 +26,8 @@ Sketch::Sketch() : PSketch()
     this->mecanum = Mecanum(50, 250, 270);
     this->craneX7 = CraneX7(this->arm_lengths, 7, 6);
     this->q_vec   = Eigen::VectorXd(this->axis_num);
-    this->start_point_x = -850.0 + this->robot_tread / 2 + 50;
-    this->start_point_y = -750.0 + this->robot_depth / 2 + 50;
+    this->start_point_x = -850.0 + 340.0 / 2 + 50;//-850.0 + this->robot_tread / 2 + 50;
+    this->start_point_y = -750.0 + 340.0 / 2 + 50;//-750.0 + this->robot_depth / 2 + 50;
     this->callback_time_                    = ros::Time::now();
     this->odom_msg_.pose.pose.position.x    = this->start_point_x * 0.001;
     this->odom_msg_.pose.pose.position.y    = this->start_point_y * 0.001;

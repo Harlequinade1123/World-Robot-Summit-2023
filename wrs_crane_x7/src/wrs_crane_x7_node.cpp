@@ -3,7 +3,7 @@
 #include <mutex>
 #include "Dynamixel.h"
 
-class CrainX7Node
+class CraneX7Node
 {
     private:
     ros::NodeHandle nh_;
@@ -31,13 +31,13 @@ class CrainX7Node
     void jointCallback(const sensor_msgs::JointStateConstPtr &msg);
 };
 
-void CrainX7Node::init()
+void CraneX7Node::init()
 {
     this->callback_time_ = ros::Time::now();
     this->joint_msg_.position.resize(8);
     this->joint_msg_.velocity.resize(1);
     this->joint_pub_ = this->nh_.advertise<sensor_msgs::JointState>("/wrs/arm/read", 10);
-    this->joint_sub_ = this->nh_.subscribe("/wrs/arm/write", 10, &CrainX7Node::jointCallback, this);
+    this->joint_sub_ = this->nh_.subscribe("/wrs/arm/write", 10, &CraneX7Node::jointCallback, this);
     this->dxl_.begin("/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT5UJQQO-if00-port0", 1000000);
     this->dxl_.torqueOn(22);
     this->dxl_.torqueOn(23);
@@ -50,7 +50,7 @@ void CrainX7Node::init()
     this->dxl_.readBulkPosition(this->ids_, this->vals_, this->angle_size_);
 }
 
-void CrainX7Node::write()
+void CraneX7Node::write()
 {
     //手先効果器の回転に対応
     int32_t vel = this->end_effector_dir_ * this->end_effector_vel_;
@@ -58,7 +58,7 @@ void CrainX7Node::write()
     //this->dxl_.writeBulkPosition(this->ids_, this->vals_, this->angle_size_);
 }
 
-void CrainX7Node::read()
+void CraneX7Node::read()
 {
     int32_t vel_data;
     if (this->dxl_.readBulkPosAndOneVel(this->ids_, this->get_vals_, this->angle_size_, this->end_effector_id_, vel_data))
@@ -84,7 +84,7 @@ void CrainX7Node::read()
     }
 }
 
-void CrainX7Node::final()
+void CraneX7Node::final()
 {
     this->dxl_.torqueOff(22);
     this->dxl_.torqueOff(23);
@@ -96,7 +96,7 @@ void CrainX7Node::final()
     this->dxl_.torqueOff(29);
 }
 
-void CrainX7Node::jointCallback(const sensor_msgs::JointStateConstPtr &msg)
+void CraneX7Node::jointCallback(const sensor_msgs::JointStateConstPtr &msg)
 {
     if (callback_time_ < msg->header.stamp && 6 <= msg->position.size())
     {
@@ -124,7 +124,7 @@ void CrainX7Node::jointCallback(const sensor_msgs::JointStateConstPtr &msg)
     }
 }
 
-double CrainX7Node::map(double value, double start1, double stop1, double start2, double stop2)
+double CraneX7Node::map(double value, double start1, double stop1, double start2, double stop2)
 {
     if(start1 <= value && value <= stop1)
     {
@@ -140,8 +140,8 @@ double CrainX7Node::map(double value, double start1, double stop1, double start2
 
 int main(int argc, char **argv)
 {
-    ros::init(argc, argv, "wrs_crain_x7_node");
-    CrainX7Node node;
+    ros::init(argc, argv, "wrs_crane_x7_node");
+    CraneX7Node node;
     ros::AsyncSpinner spinner(1);
     spinner.start();
     node.init();

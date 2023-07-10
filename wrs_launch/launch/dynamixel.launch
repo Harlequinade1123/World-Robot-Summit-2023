@@ -1,0 +1,4 @@
+<launch>
+  <node name="wrs_mecanum_node"  pkg="wrs_mecanum"  type="wrs_mecanum_node" />
+  <node name="wrs_crane_x7_node" pkg="wrs_crane_x7" type="wrs_crane_x7_node" />
+</launch>

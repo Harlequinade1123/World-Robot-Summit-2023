@@ -1,0 +1,4 @@
+<launch>
+  <node name="wrs_robot_viz_node"      pkg="wrs_robot_viz"      type="wrs_robot_viz_node" />
+  <node name="wrs_motion_planner_node" pkg="wrs_motion_planner" type="wrs_motion_planner_node" output="screen" />
+</launch>
