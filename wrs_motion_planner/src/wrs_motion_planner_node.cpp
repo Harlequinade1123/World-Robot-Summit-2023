@@ -2,10 +2,12 @@
 
 MotionPlanner::MotionPlanner()
 {
-    MAX_WHEEL_VEL_     = 100;
-    MAX_WHEEL_YAW_VEL_ = M_PI_2 / 2.5;
+    MAX_WHEEL_VEL_     = 80;
+    //MAX_WHEEL_YAW_VEL_ = M_PI_2 / 2.5;
+    MAX_WHEEL_YAW_VEL_ = M_PI_2 / 4;
     MAX_ARM_TRANSLATE_ = 1;
-    MAX_ARM_ANGLE_ = M_PI / 72;
+    //MAX_ARM_ANGLE_ = M_PI / 72;
+    MAX_ARM_ANGLE_ = M_PI / 180;
     MAX_ARM_ROTATION_  = M_PI / 100;
     mecanum = Mecanum(50, 250, 270);
     mecanum.setYawAngle(0);
@@ -43,7 +45,7 @@ MotionPlanner::MotionPlanner()
     odom_error_[0] = 5;
     odom_error_[1] = 5;
     //odom_error_[2] = M_PI / 72;
-    odom_error_[2] = M_PI / 72;
+    odom_error_[2] = M_PI / 108;
     pose_error_[0] = 2;
     pose_error_[1] = 2;
     pose_error_[2] = 2;

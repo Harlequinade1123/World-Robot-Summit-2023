@@ -27,3 +27,9 @@ target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
 )
 target_link_libraries(${PROJECT_NAME}_node Eigen3::Eigen)
+
+add_executable(${PROJECT_NAME}_init_node src/wrs_initial_motion.cpp src/wrs_motion_planner_node.cpp src/kinematics.cpp)
+target_link_libraries(${PROJECT_NAME}_init_node
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(${PROJECT_NAME}_init_node Eigen3::Eigen)
