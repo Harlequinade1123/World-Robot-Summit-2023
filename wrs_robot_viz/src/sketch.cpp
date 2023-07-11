@@ -205,8 +205,10 @@ void Sketch::drawGrid()
 
     fill(230);
     pushMatrix();
-    translate(-85.0, 0.0, 200.0);
-    box(530.0, 370.0, 400.0);
+    translate(-85.0, 0.0, 100.0);
+    box(530.0, 370.0, 200.0);
+    translate(50.0, 0.0, 200.0);
+    box(630.0, 370.0, 200.0);
     popMatrix();
 }
 
