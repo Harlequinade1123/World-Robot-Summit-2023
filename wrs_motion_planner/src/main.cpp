@@ -14,7 +14,7 @@ int main(int argc, char **argv)
     motion3();
     
     //cleaningMotion();
-    turningMotion();
+    //turningMotion();
 }
 
 //-----------------------------------------------------------------------------------------------------------------------------
@@ -573,7 +573,7 @@ void motion3()
     //フィールド中央（トイレ前）まで移動
     odom[0] = motion_planner.getWheelOdomX();
     //odom[1] = 50;
-    odom[1] = 0;
+    odom[1] = 20;
     odom[2] = M_PI_2;
     motion_planner.moveMecanumAbsolute(odom);
     motion_planner.waitForGoal(20);
@@ -605,7 +605,7 @@ void motion3()
     motion_planner.waitForGoal(20);
 
     //ちょっと下がる
-    odom[0] = 100;
+    odom[0] = 200;
     odom[1] = 0;
     odom[2] = 0;
     motion_planner.moveMecanumRelative(odom);
@@ -617,7 +617,7 @@ void motion3()
     //便座清掃
     pose[0] = motion_planner.getArmPoseX() + 50;
     pose[1] = motion_planner.getArmPoseY();
-    pose[2] = 430 - motion_planner.getArmBasePositionZ();
+    pose[2] = 460 - motion_planner.getArmBasePositionZ();
     motion_planner.moveArmAbsolute(pose);
     motion_planner.waitForGoal(10);
     
@@ -645,7 +645,7 @@ void motion3()
     motion_planner.moveArmAbsolute(pose);
     motion_planner.waitForGoal(10);
     
-    odom[0] = 50;
+    odom[0] = 100;
     odom[1] = 0;
     odom[2] = 0;
     motion_planner.moveMecanumRelative(odom);
@@ -657,6 +657,12 @@ void motion3()
     pose[2] = - motion_planner.getArmBasePositionZ() + 20;
     motion_planner.moveArmAbsolute(pose);
     motion_planner.waitForGoal(10);
+
+    odom[0] = -50;
+    odom[1] = 0;
+    odom[2] = 0;
+    motion_planner.moveMecanumRelative(odom);
+    motion_planner.waitForGoal(20);
 
     pose[0] = motion_planner.getArmPoseX();
     pose[1] = motion_planner.getArmPoseY() + 100;
