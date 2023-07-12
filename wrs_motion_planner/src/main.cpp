@@ -739,8 +739,8 @@ void motion2U()
     //便座中清掃
     motion_planner.waitForGoal(10);
     
-    pose[0] = 0;
-    pose[1] = 100;
+    pose[0] = -20;
+    pose[1] = 0;
     pose[2] = 0;
     motion_planner.moveArmRelative(pose);
     motion_planner.waitForGoal(10);
@@ -754,6 +754,7 @@ void motion2U()
     pose[0] = 0;
     pose[1] = -200;
     pose[2] = 0;
+    motion_planner.moveArmRelative(pose);
     motion_planner.waitForGoal(10);
     
     pose[0] = 0;
