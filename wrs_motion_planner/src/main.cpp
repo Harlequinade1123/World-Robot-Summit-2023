@@ -964,7 +964,7 @@ void motion2U()
 
     //元の位置に戻る
     odom[0] = -630;
-    odom[1] = -400;
+    odom[1] = -385;
     odom[2] = 0;
     motion_planner.moveMecanumAbsolute(odom);
     motion_planner.waitForGoal(20);
